@@ -1,216 +1,241 @@
 from flask import Flask, render_template, request, jsonify
 import music21
+import logging
 
 app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @app.route('/')
 def pagina_inicio():
     return render_template('index.html')
 
-# =========================================================
-# 🛠️ UTILIDADES
-# =========================================================
-
-def obtener_nota(nota_str):
-    """Convierte string a objeto Pitch de forma segura"""
-    if not nota_str: return None
-    try:
-        # Limpieza crucial: music21 usa '-' para bemol, no 'b'
-        return music21.pitch.Pitch(nota_str.replace('b', '-'))
-    except:
+# --- UTILIDADES ---
+def obtener_nota_music21(nota_str):
+    """Convierte string de nota a objeto music21.Pitch con validación"""
+    if not nota_str:
         return None
+    if not isinstance(nota_str, str):
+        raise ValueError(f"Nota debe ser string, recibió: {type(nota_str)}")
+    
+    try:
+        nota_normalizada = nota_str.replace('b', '-')
+        return music21.pitch.Pitch(nota_normalizada)
+    except Exception as e:
+        raise ValueError(f"Nota inválida '{nota_str}': {str(e)}")
 
-def fmt_err(compas, tiempo, mensaje):
-    """Formato estándar de error"""
+def crear_error(compas, tiempo_global, voces_implicadas, mensaje):
+    """Crea objeto de error estructurado"""
+    if not isinstance(voces_implicadas, list) or not voces_implicadas:
+        voces_implicadas = []
+    
+    t_compas = (tiempo_global % 4) + 1
     return {
-        'id': f"err-c{compas}-t{tiempo}-{mensaje[:3]}",
-        'mensaje': f"Compás {compas}, T{tiempo}: {mensaje}",
+        'id': f"err-{tiempo_global}",
+        'mensaje': f"Compás {compas}, T{t_compas}: {mensaje}",
         'mensaje_corto': mensaje,
-        'tiempo_index': (compas - 1) * 4 + (tiempo - 1),
-        'voces': [] # Se rellenará en cada regla
+        'tiempo_index': tiempo_global,
+        'voces': voces_implicadas
     }
 
-# =========================================================
-# ⚖️ LOS 5 JUECES (Funciones Independientes)
-# =========================================================
-
-def juez_vertical(acorde, compas, tiempo, idx_global):
-    """Revisa Cruces y Disposición en un solo acorde"""
+# --- MOTOR DE ANÁLISIS ---
+def analizar_par_acordes(n_compas, n_tiempo, notas_actual, notas_siguiente, idx_tiempo_actual):
+    """Analiza dos acordes consecutivos aplicando todas las reglas de armonía"""
     errores = []
-    voces = ['B', 'T', 'A', 'S']
-    nombres = {'B':'Bajo', 'T':'Tenor', 'A':'Contralto', 'S':'Soprano'}
+    nombres = {'S': 'Soprano', 'A': 'Contralto', 'T': 'Tenor', 'B': 'Bajo'}
+    voces_ordenadas = ['B', 'T', 'A', 'S']
     
-    # 1. CRUCES (Voz inferior supera a superior)
-    for i in range(3):
-        v_inf, v_sup = voces[i], voces[i+1]
-        n_inf, n_sup = acorde[v_inf], acorde[v_sup]
+    try:
+        # 1. Convertir notas a objetos music21
+        acorde_act = {v: obtener_nota_music21(notas_actual.get(v)) for v in voces_ordenadas}
+        acorde_sig = {v: obtener_nota_music21(notas_siguiente.get(v)) for v in voces_ordenadas}
         
-        if n_inf and n_sup:
-            if n_inf.ps > n_sup.ps:
-                err = fmt_err(compas, tiempo, f"Cruce: {nombres[v_inf]} sobre {nombres[v_sup]}")
-                err['voces'] = [v_inf, v_sup]
-                errores.append(err)
-
-    # 2. DISPOSICIÓN (Huecos > 8va)
-    # Tenor-Alto
-    if acorde['T'] and acorde['A']:
-        if (acorde['A'].ps - acorde['T'].ps) > 12:
-            err = fmt_err(compas, tiempo, "Disposición > 8ª (Tenor-Contralto)")
-            err['voces'] = ['T', 'A']
-            errores.append(err)
-            
-    # Alto-Soprano
-    if acorde['A'] and acorde['S']:
-        if (acorde['S'].ps - acorde['A'].ps) > 12:
-            err = fmt_err(compas, tiempo, "Disposición > 8ª (Contralto-Soprano)")
-            err['voces'] = ['A', 'S']
-            errores.append(err)
-
+        # Si falta alguna nota en el acorde actual, no analizar
+        if any(n is None for n in acorde_act.values()):
+            return []
+        
+        # A. VERTICAL (Cruces y Disposición)
+        for i in range(3):
+            v_inf, v_sup = voces_ordenadas[i], voces_ordenadas[i+1]
+            if acorde_act[v_inf].ps > acorde_act[v_sup].ps:
+                errores.append(crear_error(n_compas, idx_tiempo_actual, [v_inf, v_sup], 
+                    f"Cruce: {nombres[v_inf]} sobre {nombres[v_sup]}"))
+        
+        # Verificar disposición (espacios máximos entre voces)
+        if abs(acorde_act['A'].ps - acorde_act['T'].ps) > 12:
+            errores.append(crear_error(n_compas, idx_tiempo_actual, ['T', 'A'], 
+                "Disposición > 8ª (Tenor-Contralto)"))
+        if abs(acorde_act['S'].ps - acorde_act['A'].ps) > 12:
+            errores.append(crear_error(n_compas, idx_tiempo_actual, ['A', 'S'], 
+                "Disposición > 8ª (Contralto-Soprano)"))
+        
+        # B. HORIZONTAL (Requiere segundo acorde)
+        if any(n is None for n in acorde_sig.values()):
+            return errores
+        
+        # Detectar quintas y octavas paralelas/directas
+        _analizar_quintas_octavas(acorde_act, acorde_sig, voces_ordenadas, 
+                                   nombres, n_compas, idx_tiempo_actual, errores)
+        
+        # Analizar resolución de séptimas
+        _analizar_septimas(acorde_act, acorde_sig, voces_ordenadas, nombres, 
+                          n_compas, idx_tiempo_actual, errores)
+        
+        # Detectar invasiones (cruces de voces entre acordes)
+        for i in range(3):
+            v_inf, v_sup = voces_ordenadas[i], voces_ordenadas[i+1]
+            if acorde_sig[v_sup].ps < acorde_act[v_inf].ps:
+                errores.append(crear_error(n_compas, idx_tiempo_actual, [v_inf, v_sup], 
+                    f"Invasión: {nombres[v_sup]} baja más que {nombres[v_inf]}"))
+            if acorde_sig[v_inf].ps > acorde_act[v_sup].ps:
+                errores.append(crear_error(n_compas, idx_tiempo_actual, [v_inf, v_sup], 
+                    f"Invasión: {nombres[v_inf]} sube más que {nombres[v_sup]}"))
+    
+    except Exception as e:
+        logger.warning(f"Error analizando compás {n_compas}: {str(e)}")
+    
     return errores
 
-def juez_horizontal(acorde_act, acorde_sig, compas, tiempo, idx_global):
-    """Revisa el enlace entre dos acordes (Paralelas, Directas, Invasión, 7as)"""
-    errores = []
-    voces = ['B', 'T', 'A', 'S']
-    nombres = {'B':'Bajo', 'T':'Tenor', 'A':'Contralto', 'S':'Soprano'}
 
-    # Si falta alguna nota clave en el enlace, saltamos para no dar falsos errores
-    # (Aunque lo ideal es analizar lo que haya, por ahora somos estrictos)
-    
-    # A. QUINTAS Y OCTAVAS (Paralelas y Directas)
+def _analizar_quintas_octavas(acorde_act, acorde_sig, voces_ordenadas, nombres, 
+                               n_compas, idx_tiempo_actual, errores):
+    """Detecta quintas y octavas paralelas/directas"""
     pares = [('B','T'), ('B','A'), ('B','S'), ('T','A'), ('T','S'), ('A','S')]
     
     for v1, v2 in pares:
         n1_a, n2_a = acorde_act[v1], acorde_act[v2]
         n1_b, n2_b = acorde_sig[v1], acorde_sig[v2]
-
-        if not (n1_a and n2_a and n1_b and n2_b): continue
-
-        # Intervalos (siempre low a high)
-        i_a = music21.interval.Interval(min(n1_a, n2_a), max(n1_a, n2_a))
-        i_b = music21.interval.Interval(min(n1_b, n2_b), max(n1_b, n2_b))
-
-        tipo_a = i_a.semiSimpleName # P5, P8...
-        tipo_b = i_b.semiSimpleName
-
-        es_destino_perf = (tipo_b in ['P5', 'P1', 'P8'])
         
-        if es_destino_perf:
-            # Movimiento de las voces
+        # Determinar intervalos
+        low_a, high_a = (n1_a, n2_a) if n1_a.ps < n2_a.ps else (n2_a, n1_a)
+        int_a = music21.interval.Interval(low_a, high_a)
+        low_b, high_b = (n1_b, n2_b) if n1_b.ps < n2_b.ps else (n2_b, n1_b)
+        int_b = music21.interval.Interval(low_b, high_b)
+        
+        es_quinta = (int_a.semiSimpleName == 'P5' and int_b.semiSimpleName == 'P5')
+        es_octava = (int_a.semiSimpleName in ['P1','P8'] and int_b.semiSimpleName in ['P1','P8'])
+        
+        if es_quinta or es_octava:
             mov_v1 = n1_b.ps - n1_a.ps
             mov_v2 = n2_b.ps - n2_a.ps
             
-            # Si hay movimiento directo (mismo signo y no oblicuo)
+            # Solo reportar si ambas voces se mueven
             if mov_v1 != 0 and mov_v2 != 0:
-                if (mov_v1 > 0 and mov_v2 > 0) or (mov_v1 < 0 and mov_v2 < 0):
+                mismo_movimiento = (mov_v1 > 0 and mov_v2 > 0) or (mov_v1 < 0 and mov_v2 < 0)
+                
+                if mismo_movimiento:
+                    tipo = "Quintas" if es_quinta else "Octavas"
                     
-                    nombre_int = "Quintas" if tipo_b == 'P5' else "Octavas"
+                    # Quintas/Octavas paralelas (mismo tipo de intervalo)
+                    if int_a.semiSimpleName == int_b.semiSimpleName:
+                        errores.append(crear_error(n_compas, idx_tiempo_actual, [v1, v2], 
+                            f"{tipo} Paralelas ({nombres[v1]}-{nombres[v2]})"))
                     
-                    # 1. PARALELAS (Origen igual a destino)
-                    if tipo_a == tipo_b:
-                        err = fmt_err(compas, tiempo, f"{nombre_int} Paralelas ({nombres[v1]}-{nombres[v2]})")
-                        err['voces'] = [v1, v2]
-                        errores.append(err)
-                    
-                    # 2. DIRECTAS (Solo Baj-Sop y Soprano salta)
-                    elif v1 == 'B' and v2 == 'S':
-                        salto_sop = abs(n2_b.ps - n2_a.ps)
-                        if salto_sop > 2:
-                            err = fmt_err(compas, tiempo, f"{nombre_int} Directas (Soprano salta)")
-                            err['voces'] = ['B', 'S']
-                            errores.append(err)
+                    # Quintas/Octavas directas (solo en voces externas si soprano salta)
+                    elif v1 == 'B' and v2 == 'S' and abs(n2_b.ps - n2_a.ps) > 2:
+                        errores.append(crear_error(n_compas, idx_tiempo_actual, [v1, v2], 
+                            f"{tipo} Directas (Soprano salta)"))
 
-    # B. INVASIÓN DE ÁMBITO (Overlap)
-    # Comparamos voces adyacentes
-    for i in range(3):
-        v_inf, v_sup = voces[i], voces[i+1]
-        ni_a, ns_a = acorde_act[v_inf], acorde_act[v_sup]
-        ni_b, ns_b = acorde_sig[v_inf], acorde_sig[v_sup]
 
-        if ni_a and ns_a and ni_b and ns_b:
-            # Descendente: Sup nueva < Inf vieja
-            if ns_b.ps < ni_a.ps:
-                err = fmt_err(compas, tiempo, f"Invasión: {nombres[v_sup]} baja más que {nombres[v_inf]}")
-                err['voces'] = [v_inf, v_sup]
-                errores.append(err)
-            # Ascendente: Inf nueva > Sup vieja
-            if ni_b.ps > ns_a.ps:
-                err = fmt_err(compas, tiempo, f"Invasión: {nombres[v_inf]} sube más que {nombres[v_sup]}")
-                err['voces'] = [v_inf, v_sup]
-                errores.append(err)
-
-    # C. SÉPTIMAS
-    # Crear acorde music21 para análisis armónico
-    notas_lista = [n for n in acorde_act.values() if n is not None]
-    if len(notas_lista) >= 3:
-        c_m21 = music21.chord.Chord(notas_lista)
-        if c_m21.seventh:
-            nombre_7 = c_m21.seventh.nameWithOctave
-            # Buscar quien la tiene
-            v_7 = None
-            for v, n in acorde_act.items():
-                if n and n.nameWithOctave == nombre_7:
-                    v_7 = v
-                    break
+def _analizar_septimas(acorde_act, acorde_sig, voces_ordenadas, nombres, 
+                       n_compas, idx_tiempo_actual, errores):
+    """Verifica que las séptimas se resuelvan correctamente"""
+    try:
+        chord_m21 = music21.chord.Chord([acorde_act[v] for v in voces_ordenadas])
+        
+        if chord_m21.seventh:
+            nom_7 = chord_m21.seventh.nameWithOctave
+            v_7 = next((v for v in voces_ordenadas if acorde_act[v].nameWithOctave == nom_7), None)
             
-            if v_7 and acorde_sig.get(v_7):
+            if v_7:
                 diff = acorde_sig[v_7].ps - acorde_act[v_7].ps
+                
+                # Séptima debe bajar 1 o 2 semitonos
                 if diff >= 0:
-                    err = fmt_err(compas, tiempo, f"Séptima en {nombres[v_7]} no resuelve")
-                    err['voces'] = [v_7]
-                    errores.append(err)
+                    errores.append(crear_error(n_compas, idx_tiempo_actual, [v_7], 
+                        f"Séptima en {nombres[v_7]} no resuelve"))
                 elif diff < -2:
-                    err = fmt_err(compas, tiempo, f"Séptima en {nombres[v_7]} salta")
-                    err['voces'] = [v_7]
-                    errores.append(err)
-
-    return errores
-
-# =========================================================
-# 📡 RUTA PRINCIPAL
-# =========================================================
+                    errores.append(crear_error(n_compas, idx_tiempo_actual, [v_7], 
+                        f"Séptima en {nombres[v_7]} salta"))
+    except Exception as e:
+        logger.debug(f"No se pudo analizar séptima: {str(e)}")
 
 @app.route('/analizar_partitura', methods=['POST'])
 def analizar_partitura():
+    """Endpoint para analizar una partitura completa"""
     try:
+        # Validación de entrada
         datos = request.get_json()
-        partitura_raw = datos.get('partitura', [])
+        if not datos:
+            return jsonify({'errores': [], 'mensaje': 'Error: datos vacíos'}), 400
         
-        # 1. DEBUG: Imprimir en terminal lo que llega (¡MIRA AQUÍ!)
-        print("\n--- NUEVA PETICIÓN DE ANÁLISIS ---")
+        partitura = datos.get('partitura', [])
         
-        errores_total = []
-        acordes_procesados = []
-
-        # 2. PRE-PROCESAMIENTO: Convertir todo a objetos Music21 antes de analizar
-        for t_dict in partitura_raw:
-            acorde_obj = {v: obtener_nota(t_dict.get(v)) for v in ['B','T','A','S']}
-            acordes_procesados.append(acorde_obj)
-
-        # 3. EJECUCIÓN DE JUECES
-        for i in range(len(acordes_procesados)):
-            # Datos de contexto
-            compas = (i // 4) + 1
-            tiempo = (i % 4) + 1
-            acorde_actual = acordes_procesados[i]
-
-            # A. JUEZ VERTICAL (Siempre se ejecuta)
-            # Imprimir para debug
-            # print(f"Analizando Vertical C{compas}-T{tiempo}: {acorde_actual}")
-            errores_total.extend(juez_vertical(acorde_actual, compas, tiempo, i))
-
-            # B. JUEZ HORIZONTAL (Solo si no es el último)
-            if i < len(acordes_procesados) - 1:
-                acorde_siguiente = acordes_procesados[i+1]
-                # print(f"Analizando Horizontal -> C{compas}-T{tiempo+1}")
-                errores_total.extend(juez_horizontal(acorde_actual, acorde_siguiente, compas, tiempo, i))
-
-        msg = "✅ Ejercicio Correcto" if not errores_total else f"⚠️ {len(errores_total)} errores encontrados"
-        return jsonify({'errores': errores_total, 'mensaje': msg})
-
+        # Validar formato de partitura
+        if not isinstance(partitura, list) or len(partitura) == 0:
+            return jsonify({'errores': [], 'mensaje': 'Error: partitura inválida'}), 400
+        
+        # Validar cada tiempo
+        for i, tiempo in enumerate(partitura):
+            if not isinstance(tiempo, dict) or not all(k in ['S', 'A', 'T', 'B'] for k in tiempo.keys()):
+                return jsonify({'errores': [], 'mensaje': f'Error: tiempo {i} con formato inválido'}), 400
+        
+        # Analizar pares de acordes consecutivos
+        errores = []
+        for i in range(len(partitura) - 1):
+            if any(partitura[i].values()) and any(partitura[i+1].values()):
+                try:
+                    errores.extend(analizar_par_acordes(
+                        (i//4)+1,           # número de compás
+                        (i%4)+1,            # tiempo dentro del compás
+                        partitura[i], 
+                        partitura[i+1], 
+                        i                   # índice global
+                    ))
+                except Exception as e:
+                    logger.error(f"Error analizando compás {(i//4)+1}: {str(e)}")
+                    return jsonify({'errores': [], 'mensaje': f'Error: {str(e)}'}), 500
+        
+        # Analizar último acorde (sin siguiente)
+        ult = len(partitura) - 1
+        if any(partitura[ult].values()):
+            try:
+                errores.extend(analizar_par_acordes(
+                    (ult//4)+1, 
+                    (ult%4)+1, 
+                    partitura[ult], 
+                    {}, 
+                    ult
+                ))
+            except Exception as e:
+                logger.error(f"Error analizando último acorde: {str(e)}")
+                return jsonify({'errores': [], 'mensaje': f'Error: {str(e)}'}), 500
+        
+        # Generar respuesta
+        msg = "✅ Ejercicio Correcto" if not errores else f"⚠️ {len(errores)} errores encontrados"
+        return jsonify({
+            'errores': errores, 
+            'mensaje': msg,
+            'success': len(errores) == 0
+        }), 200
+        
     except Exception as e:
-        print(f"❌ ERROR CRÍTICO: {e}")
-        return jsonify({'errores': [], 'mensaje': "Error interno en el servidor"})
+        logger.error(f"Error en /analizar_partitura: {str(e)}")
+        return jsonify({
+            'errores': [], 
+            'mensaje': f'Error de servidor: {str(e)}'
+        }), 500
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({'error': 'Ruta no encontrada'}), 404
+
+
+@app.errorhandler(500)
+def server_error(e):
+    logger.error(f"Error del servidor: {str(e)}")
+    return jsonify({'error': 'Error interno del servidor'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, host='0.0.0.0', port=5001)

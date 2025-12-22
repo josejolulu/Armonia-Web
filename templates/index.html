@@ -2,220 +2,78 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aula de Armonía - Studio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>Aula de Armonía</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg?v=1">
+    <link rel="apple-touch-icon" href="/static/favicon.svg?v=1">
+    <!-- Estilos -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <!-- VexFlow para notación musical -->
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
-    
-    <style>
-        :root {
-            --primary: #546de5;
-            --danger: #ff0000; /* Rojo puro alerta */
-            --success: #1dd1a1;
-            --dark: #222f3e;
-            --grey: #576574;
-            --light: #c8d6e5;
-            --bg: #f4f6f8;
-            --panel-bg: #ffffff;
-            --arrow-pos: 50%;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            margin: 0; padding: 10px;
-            height: 100vh;
-            display: flex; flex-direction: column; overflow: hidden;
-        }
-
-        /* --- 1. HEADER COMPACTO --- */
-        header {
-            background: white; border-bottom: 1px solid #e0e0e0;
-            padding: 0 15px; flex-shrink: 0; z-index: 10;
-            display: flex; justify-content: space-between; align-items: center;
-            height: 40px; /* Altura reducida */
-            border-radius: 8px; margin-bottom: 10px;
-        }
-        h1 { margin: 0; font-size: 1rem; color: var(--dark); font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; }
-        
-        .auto-flow-switch {
-            display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; color: var(--grey);
-            background: #f1f2f6; padding: 2px 8px; border-radius: 20px; border: 1px solid #e0e0e0;
-        }
-        .auto-flow-switch input { cursor: pointer; }
-
-        /* --- 2. STAGE (PARTITURA) --- */
-        #stage {
-            flex: 1; position: relative; overflow: hidden;
-            background: #fff; border-radius: 12px; border: 1px solid #dcdde1;
-            display: flex; flex-direction: column; justify-content: center;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.02);
-        }
-
-        .scroll-partitura {
-            width: 100%; height: 100%; overflow: auto;
-            white-space: nowrap; text-align: center;
-            /* Padding superior para el Tooltip */
-            padding-top: 45px; 
-            /* Padding inferior EXTRA para futuros cifrados */
-            padding-bottom: 40px; 
-        }
-        
-        #lienzo-partitura { display: inline-block; vertical-align: top; position: relative; }
-
-        /* TOOLTIP FLOTANTE (ESTILO "BOCADILLO") */
-        #tooltip-error {
-            position: absolute;
-            background-color: #ffffff; color: var(--danger);
-            padding: 6px 12px; border-radius: 6px;
-            font-size: 0.8rem; font-weight: 700;
-            pointer-events: none; z-index: 1000;
-            opacity: 0; transition: opacity 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            border: 2px solid var(--danger); 
-            width: max-content; max-width: 220px; white-space: normal;
-            
-            /* POSICIÓN FIJA SUPERIOR */
-            top: 5px; 
-            transform: translateX(-50%); /* Centrado inicial */
-        }
-        
-        /* Flecha Larga que apunta a la nota */
-        #tooltip-error::after {
-            content: ""; position: absolute; 
-            top: 100%; left: var(--arrow-pos); 
-            margin-left: -1px;
-            width: 2px; height: 25px; /* Línea conectora */
-            background: var(--danger);
-        }
-        /* Punta de la flecha */
-        #tooltip-error::before {
-            content: ""; position: absolute; 
-            top: calc(100% + 25px); left: var(--arrow-pos); 
-            margin-left: -5px;
-            border-width: 5px; border-style: solid; 
-            border-color: var(--danger) transparent transparent transparent; 
-        }
-        
-        .tooltip-visible { opacity: 1 !important; }
-
-        /* --- 3. COMMAND CENTER --- */
-        #deck {
-            /* MARGEN GENEROSO PARA SEPARAR DE CIFRADOS FUTUROS */
-            margin-top: 30px; 
-            
-            background: var(--panel-bg);
-            box-shadow: 0 -5px 25px rgba(0,0,0,0.05);
-            border-top: 1px solid #ddd;
-            border-radius: 15px 15px 0 0;
-            flex-shrink: 0; z-index: 20;
-            display: flex; flex-direction: column;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        
-        /* PANEL DE ERRORES */
-        #panel-resultados {
-            display: none; background: #fff; margin-bottom: 10px;
-            border-radius: 8px; border: 1px solid #ffcdd2; overflow: hidden;
-        }
-        .error-header {
-            background: #ffebee; color: #c62828; padding: 6px 15px;
-            font-weight: 700; font-size: 0.85rem; border-bottom: 1px solid #ffcdd2;
-        }
-        #lista-errores { max-height: 80px; overflow-y: auto; text-align: left; }
-        .item-error {
-            padding: 0 15px; height: 35px; line-height: 35px; 
-            border-bottom: 1px solid #f0f0f0; font-size: 0.8rem; 
-            cursor: pointer; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        .item-error:hover { background: #fff5f5; color: #c62828; }
-        .item-error.seleccionado { background: #ffebee; font-weight: bold; color: #b71c1c; border-left: 4px solid #d32f2f; }
-        .msg-success { color: var(--success); text-align: center; font-weight: bold; padding: 10px; background: #e8f9f0; font-size: 0.9rem;}
-
-        /* FILA A: HERRAMIENTAS */
-        .toolbar-row {
-            display: flex; justify-content: center; align-items: center; gap: 15px;
-            padding: 8px 15px; border-bottom: 1px solid #f0f0f0; background: #fafafa;
-            border-radius: 15px 15px 0 0;
-        }
-
-        .nav-group { display: flex; align-items: center; background: white; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
-        .btn-nav { width: 32px; height: 28px; border: none; background: white; cursor: pointer; color: var(--grey); font-weight: bold; transition: 0.1s; font-size: 1rem;}
-        .btn-nav:hover { background: #eee; }
-        .btn-nav:active { background: var(--primary); color: white; }
-        #indicador-posicion { font-size: 0.85rem; font-weight: 700; color: var(--dark); padding: 0 12px; min-width: 100px; text-align: center; border-left: 1px solid #f0f0f0; border-right: 1px solid #f0f0f0; }
-
-        .voices-group { display: flex; gap: 5px; }
-        .btn-voz {
-            width: 32px; height: 32px; border-radius: 6px; border: 1px solid #e0e0e0;
-            background: white; color: #b2bec3; font-weight: 800; cursor: pointer;
-            font-size: 0.9rem; transition: all 0.2s; position: relative;
-        }
-        .btn-voz:hover { border-color: var(--primary); color: var(--primary); }
-        .voz-activa { transform: translateY(-2px); border-color: transparent !important; color: white !important; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
-        #btn-B.voz-activa { background: #0984e3; } #btn-T.voz-activa { background: #00b894; } 
-        #btn-A.voz-activa { background: #e17055; } #btn-S.voz-activa { background: #e84393; }
-
-        /* FILA B: PIANO Y CONTROLES */
-        .piano-row { display: flex; justify-content: center; align-items: center; gap: 15px; padding: 10px 15px; }
-        
-        .side-controls { display: flex; flex-direction: column; gap: 6px; }
-        .ctrl-capsule { display: flex; align-items: center; gap: 4px; background: #f8f9fa; padding: 3px 6px; border-radius: 6px; border: 1px solid #e0e0e0; }
-        .ctrl-label { font-size: 0.6rem; font-weight: 800; color: #aaa; text-transform: uppercase; margin-right: 2px; }
-        
-        .btn-mini { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #ddd; background: white; cursor: pointer; font-weight: bold; color: #555; font-size: 0.9rem;}
-        
-        /* Selector Alteraciones con Becuadro */
-        .switch-alt { display: flex; gap: 8px; background: white; padding: 3px 8px; border-radius: 20px; border: 1px solid #ddd; }
-        .switch-alt label { cursor: pointer; font-weight: 600; font-size: 0.8rem; display: flex; align-items: center; gap: 2px; }
-        .switch-alt input:checked + span { color: var(--primary); font-weight: 800; }
-
-        /* PIANO PROPORCIONAL */
-        .piano-container { flex: 1; max-width: 480px; height: 100px; position: relative; }
-        .piano-wrapper { height: 100%; width: 100%; position: relative; user-select: none; }
-        
-        .white-keys { display: flex; height: 100%; }
-        .key-white { 
-            flex: 1; background: white; border: 1px solid #bbb; border-top: 3px solid #eee;
-            border-radius: 0 0 4px 4px; position: relative; cursor: pointer; z-index: 1; 
-        }
-        .key-white:active { background: #f0f0f0; transform: translateY(2px); border-top: none; }
-        .key-white span { position: absolute; bottom: 5px; left: 0; width: 100%; text-align: center; font-size: 9px; color: #aaa; font-weight: 700; pointer-events: none; }
-
-        .key-black { 
-            position: absolute; top: 0; width: 8%; height: 60%; background: #2d3436; 
-            border-radius: 0 0 3px 3px; z-index: 10; cursor: pointer; 
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.3); border: 1px solid #111;
-        }
-        .key-black:active { background: black; transform: translateY(2px); }
-        
-        /* POSICIONAMIENTO MATEMÁTICO DE NEGRAS (100% / 8 teclas blancas = 12.5% por tecla) */
-        /* C# entre C(0-12.5) y D(12.5-25) -> Centro en 12.5%. Restamos mitad ancho (4%) -> 8.5% */
-        .kb-Cs { left: 8.5%; } 
-        /* D# entre D(12.5-25) y E(25-37.5) -> Centro en 25%. Restamos 4% -> 21% */
-        .kb-Ds { left: 21%; } 
-        /* F# entre F(37.5-50) y G(50-62.5) -> Centro en 50%. Restamos 4% -> 46% */
-        .kb-Fs { left: 46%; } 
-        /* G# entre G(50-62.5) y A(62.5-75) -> Centro en 62.5%. Restamos 4% -> 58.5% */
-        .kb-Gs { left: 58.5%; } 
-        /* A# entre A(62.5-75) y B(75-87.5) -> Centro en 75%. Restamos 4% -> 71% */
-        .kb-As { left: 71%; }
-
-        .action-bar { display: flex; justify-content: center; gap: 15px; padding-bottom: 15px; }
-        .btn-main { padding: 8px 20px; border-radius: 20px; border: none; font-weight: bold; font-size: 0.85rem; color: white; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.1s; }
-        .btn-main:active { transform: scale(0.95); }
-        .btn-check { background: var(--success); } .btn-trash { background: var(--danger); }
-
-    </style>
 </head>
 <body>
 
+    <!-- MODAL ONBOARDING -->
+    <div class="modal-overlay" id="modal-welcome">
+        <div class="modal-content">
+            <h2>Bienvenido a Aula de Armonía</h2>
+            <p>Escribe acordes de 4 voces (SATB) y obtén análisis automático de reglas de armonía tonal.</p>
+            <div class="shortcuts-list">
+                <p style="margin: 0 0 8px 0; font-weight: bold; font-size: 0.9rem;">Atajos de teclado:</p>
+                <div class="shortcut">
+                    <span>Seleccionar voces:</span>
+                    <span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></span>
+                </div>
+                <div class="shortcut">
+                    <span>Navegar:</span>
+                    <span><kbd>←</kbd> <kbd>→</kbd></span>
+                </div>
+                <div class="shortcut">
+                    <span>Notas (A-G) + Octava:</span>
+                    <span><kbd>C</kbd> <kbd>D</kbd> <kbd>E</kbd>...</span>
+                </div>
+                <div class="shortcut">
+                    <span>Borrar nota:</span>
+                    <span><kbd>Backspace</kbd></span>
+                </div>
+                <div class="shortcut">
+                    <span>Analizar:</span>
+                    <span><kbd>Enter</kbd></span>
+                </div>
+                <div class="shortcut">
+                    <span>Deshacer/Rehacer:</span>
+                    <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></span>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-modal btn-modal-secondary" onclick="AudioStudio.closeWelcome()">Más tarde</button>
+                <button class="btn-modal btn-modal-primary" onclick="AudioStudio.closeWelcome()">Comenzar</button>
+            </div>
+        </div>
+    </div>
+
     <header>
         <h1>Aula de Armonía</h1>
-        <label class="auto-flow-switch" title="Cambia de voz automáticamente al tocar">
-            <input type="checkbox" id="chk-autoflow" checked> Auto-salto
-        </label>
+        <div class="header-controls">
+            <!-- Toggle Modo -->
+            <div class="mode-toggle">
+                <button id="btn-mode-write" class="active" onclick="AudioStudio.setAppMode('write')"><span class="btn-icon">✏️</span><span class="btn-text"> Escribir</span></button>
+                <button id="btn-mode-review" onclick="AudioStudio.setAppMode('review')"><span class="btn-icon">🔍</span><span class="btn-text"> Revisar</span></button>
+            </div>
+            <button class="btn-undo" id="btn-undo" onclick="AudioStudio.undo()" data-tooltip="Deshacer (Ctrl+Z)" disabled>↶</button>
+            <button class="btn-redo" id="btn-redo" onclick="AudioStudio.redo()" data-tooltip="Rehacer (Ctrl+Shift+Z)" disabled>↷</button>
+            <label class="auto-flow-switch write-only">
+                <input type="checkbox" id="chk-autoflow" checked> Auto
+            </label>
+            <div class="input-switch write-only">
+                <label>Entrada</label>
+                <select id="input-mode" onchange="AudioStudio.setInputMode(this.value)">
+                    <option value="piano">Piano</option>
+                    <option value="buttons">Botones</option>
+                </select>
+            </div>
+        </div>
     </header>
 
     <section id="stage">
@@ -226,33 +84,58 @@
     </section>
 
     <section id="deck">
-        <div id="panel-errores">
-            <div id="resumen-errores" class="error-header">Analizando...</div>
+        <!-- Panel Resultados -->
+        <div id="panel-resultados">
+            <div id="resumen-errores" class="error-header">Informe</div>
             <div id="lista-errores"></div>
         </div>
 
+        <!-- Fila A -->
         <div class="toolbar-row">
             <div class="nav-group">
-                <button class="btn-nav" onclick="moverCursor(-1)">❮</button>
+                <button class="btn-nav" onclick="moverCursor(-1)" data-tooltip="Anterior (←)">❮</button>
                 <div id="indicador-posicion">C.1 - T.1</div>
-                <button class="btn-nav" onclick="moverCursor(1)">❯</button>
+                <button class="btn-nav" onclick="moverCursor(1)" data-tooltip="Siguiente (→)">❯</button>
             </div>
-
             <div class="voices-group">
-                <button class="btn-voz" id="btn-B" data-key="1" onclick="seleccionarVoz('B')">B</button>
-                <button class="btn-voz" id="btn-T" data-key="2" onclick="seleccionarVoz('T')">T</button>
-                <button class="btn-voz" id="btn-A" data-key="3" onclick="seleccionarVoz('A')">A</button>
-                <button class="btn-voz" id="btn-S" data-key="4" onclick="seleccionarVoz('S')">S</button>
+                <button class="btn-voz" id="btn-B" data-key="1" onclick="seleccionarVoz('B')" data-tooltip="Bajo (1)">B</button>
+                <button class="btn-voz" id="btn-T" data-key="2" onclick="seleccionarVoz('T')" data-tooltip="Tenor (2)">T</button>
+                <button class="btn-voz" id="btn-A" data-key="3" onclick="seleccionarVoz('A')" data-tooltip="Contralto (3)">A</button>
+                <button class="btn-voz" id="btn-S" data-key="4" onclick="seleccionarVoz('S')" data-tooltip="Soprano (4)">S</button>
             </div>
         </div>
 
+        <!-- Fila B -->
         <div class="piano-row">
+            <!-- Modo Botones (móvil) -->
+            <div id="mobile-input-grid" class="mobile-input-grid">
+                <div class="row">
+                    <button class="btn-note" onclick="AudioStudio.inputNote('C')">Do</button>
+                    <button class="btn-note" onclick="AudioStudio.inputNote('D')">Re</button>
+                    <button class="btn-note" onclick="AudioStudio.inputNote('E')">Mi</button>
+                    <button class="btn-note" onclick="AudioStudio.inputNote('F')">Fa</button>
+                    <button class="btn-note" onclick="AudioStudio.inputNote('G')">Sol</button>
+                    <button class="btn-note" onclick="AudioStudio.inputNote('A')">La</button>
+                    <button class="btn-note" onclick="AudioStudio.inputNote('B')">Si</button>
+                </div>
+                <div class="row">
+                    <button id="btn-alt-sharp" class="btn-alt" onclick="AudioStudio.setAlteracion('#')">♯</button>
+                    <button id="btn-alt-flat" class="btn-alt" onclick="AudioStudio.setAlteracion('b')">♭</button>
+                    <button id="btn-alt-natural" class="btn-alt active" onclick="AudioStudio.setAlteracion('n')">♮</button>
+                </div>
+                <div class="row">
+                    <span class="ctrl-label">Oct</span>
+                    <button class="btn-mini" onclick="AudioStudio.changeOctave(-1)">−</button>
+                    <span id="mobile-octava" class="oct-display">3</span>
+                    <button class="btn-mini" onclick="AudioStudio.changeOctave(1)">+</button>
+                </div>
+            </div>
             <div class="side-controls">
                 <div class="ctrl-capsule">
                     <span class="ctrl-label">Oct</span>
-                    <button class="btn-mini" onclick="cambiarOctava(-1)">-</button>
+                    <button class="btn-mini" onclick="cambiarOctava(-1)" data-tooltip="Oct -">−</button>
                     <span id="display-octava" style="font-weight:bold; font-size:0.9rem; width:15px; text-align:center;">3</span>
-                    <button class="btn-mini" onclick="cambiarOctava(1)">+</button>
+                    <button class="btn-mini" onclick="cambiarOctava(1)" data-tooltip="Oct +">+</button>
                 </div>
             </div>
 
@@ -279,279 +162,22 @@
             <div class="side-controls">
                 <div class="ctrl-capsule">
                     <div class="switch-alt">
-                        <label><input type="radio" name="alt" value="#" checked onchange="modoAlteracion='#'"><span>♯</span></label>
-                        <label><input type="radio" name="alt" value="b" onchange="modoAlteracion='b'"><span>♭</span></label>
-                        <label><input type="radio" name="alt" value="n" onchange="modoAlteracion='n'"><span>♮</span></label>
+                        <label><input type="radio" name="alt" value="#" onchange="AudioStudio.setAlteracion('#')"><span>♯</span></label>
+                        <label><input type="radio" name="alt" value="b" onchange="AudioStudio.setAlteracion('b')"><span>♭</span></label>
+                        <label><input type="radio" name="alt" value="n" checked onchange="AudioStudio.setAlteracion('n')"><span>♮</span></label>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="action-bar">
-            <button class="btn-main btn-trash" onclick="borrarTodo()">Borrar</button>
-            <button class="btn-main btn-check" onclick="analizarPartitura()">🔍 Corregir (Enter)</button>
+            <button class="btn-main btn-trash write-only" onclick="borrarTodo()" data-tooltip="Borrar todo (Ctrl+Shift+A)">🗑️ Borrar</button>
+            <button class="btn-main btn-check write-only" id="btn-corregir" onclick="analizarPartitura()" data-tooltip="Analizar (Enter)">🔍 Corregir</button>
+            <button class="btn-main btn-check review-only" onclick="AudioStudio.setAppMode('write')" style="background: var(--primary);">✏️ Volver a Escribir</button>
         </div>
-
     </section>
 
-<script>
-    const NUM_COMPASES = 4;
-    const TIEMPOS = 4; 
-    const TOTAL = NUM_COMPASES * TIEMPOS;
-    let partitura = [];
-    for(let i=0; i<TOTAL; i++) partitura.push({ 'S': null, 'A': null, 'T': null, 'B': null });
-
-    let cursorIndex = 0; 
-    let vozActiva = 'B'; 
-    let octavaBase = 3; 
-    let modoAlteracion = '#';
-    let errorSeleccionado = null; 
-    let erroresGlobales = [];
-    let tooltipTimer1, tooltipTimer2;
-
-    window.onload = function() {
-        seleccionarVoz('B');
-        renderizarPartituraCompleta();
-        document.addEventListener('keydown', manejarTeclado);
-    };
-
-    function manejarTeclado(e) {
-        if(e.target.tagName === 'INPUT') return;
-        const key = e.key.toLowerCase();
-        const mapa = { 'c':'C', 'd':'D', 'e':'E', 'f':'F', 'g':'G', 'a':'A', 'b':'B' };
-        if (mapa[key]) { animarTecla(mapa[key]); tocarBlanca(mapa[key]); }
-        if(e.key === '1') seleccionarVoz('B');
-        if(e.key === '2') seleccionarVoz('T');
-        if(e.key === '3') seleccionarVoz('A');
-        if(e.key === '4') seleccionarVoz('S');
-        if(e.key === 'ArrowLeft') moverCursor(-1);
-        if(e.key === 'ArrowRight') moverCursor(1);
-        if(e.key === 'Backspace' || e.key === 'Delete') agregarNota(null);
-        if(e.key === 'Enter') analizarPartitura();
-    }
-
-    function animarTecla(nota) {
-        let el = document.getElementById(`key-${nota}`);
-        if(!el) el = document.getElementById(`key-${nota}#`);
-        if(el) { el.classList.add('active-key'); setTimeout(() => el.classList.remove('active-key'), 150); }
-    }
-
-    function renderizarPartituraCompleta() {
-        try {
-            document.getElementById('lienzo-partitura').innerHTML = '';
-            
-            const VF = Vex.Flow;
-            const vf = new VF.Factory({ 
-                renderer: { elementId: 'lienzo-partitura', width: NUM_COMPASES * 270 + 50, height: 280 } 
-            });
-            const score = vf.EasyScore();
-            
-            let xPos = 0;
-            let yPos = 30; // Posición de dibujo del sistema (más abajo para centrar)
-
-            for (let c = 0; c < NUM_COMPASES; c++) {
-                const inicio = c * TIEMPOS;
-                const fin = inicio + TIEMPOS;
-                const slice = partitura.slice(inicio, fin);
-
-                const strS = generarStringVoz(slice, 'S');
-                const strA = generarStringVoz(slice, 'A');
-                const strT = generarStringVoz(slice, 'T');
-                const strB = generarStringVoz(slice, 'B');
-
-                const ns = score.notes(strS, { stem: 'up' });
-                const na = score.notes(strA, { stem: 'down' });
-                const nt = score.notes(strT, { stem: 'up', clef: 'bass' });
-                const nb = score.notes(strB, { stem: 'down', clef: 'bass' });
-
-                aplicarEstiloCursor(ns, inicio, 'S'); 
-                aplicarEstiloCursor(na, inicio); 
-                aplicarEstiloCursor(nt, inicio); 
-                aplicarEstiloCursor(nb, inicio);
-
-                if (errorSeleccionado) {
-                    const c_error = Math.floor(errorSeleccionado.tiempo_index / 4);
-                    if (c === c_error || c === c_error + 1) {
-                        aplicarEstiloError(ns, inicio, 'S', xPos);
-                        aplicarEstiloError(na, inicio, 'A', xPos);
-                        aplicarEstiloError(nt, inicio, 'T', xPos);
-                        aplicarEstiloError(nb, inicio, 'B', xPos);
-                    }
-                }
-
-                const ancho = (c===0)?320:270;
-                const sys = vf.System({ x: xPos, y: yPos, width: ancho });
-                
-                const st = sys.addStave({ voices: [score.voice(ns), score.voice(na)] });
-                const sb = sys.addStave({ voices: [score.voice(nt), score.voice(nb)] });
-
-                if (c===0) { st.addClef('treble').addTimeSignature('4/4'); sb.addClef('bass').addTimeSignature('4/4'); sys.addConnector('brace'); sys.addConnector('singleLeft'); }
-                else { sys.addConnector('singleLeft'); }
-                if (c===NUM_COMPASES-1) sys.addConnector('boldDoubleRight');
-
-                vf.draw();
-                xPos += ancho;
-            }
-        } catch (e) { console.error(e); }
-    }
-
-    function mostrarTooltip(localIndex, xOffsetCompas) {
-        const tooltip = document.getElementById('tooltip-error');
-        clearTimeout(tooltipTimer1);
-        clearTimeout(tooltipTimer2);
-
-        // CALIBRACIÓN DE PRECISIÓN ACTUALIZADA
-        const padding = (xOffsetCompas === 0) ? 100 : 25; 
-        const anchoNota = 70;
-        let xNota = xOffsetCompas + padding + (localIndex * anchoNota); 
-        
-        // El tooltip está fijo en top:5px. 
-        // Solo movemos el tooltip horizontalmente y la flecha.
-        const anchoTooltip = 220;
-        let leftPos = xNota - (anchoTooltip / 2) + 15; // Centrado en nota (+15px offset cabeza)
-        let arrowPos = "50%";
-        let transform = "translateX(0)"; // Control manual
-
-        // CLAMPING
-        if (leftPos < 10) {
-            leftPos = 10;
-            let arrowOffset = xNota - leftPos + 15;
-            arrowPos = arrowOffset + "px";
-        }
-
-        tooltip.style.left = leftPos + 'px'; 
-        tooltip.style.transform = transform;
-        tooltip.style.setProperty('--arrow-pos', arrowPos);
-        tooltip.innerText = errorSeleccionado.mensaje_corto;
-        
-        requestAnimationFrame(() => { tooltip.classList.add('tooltip-visible'); });
-        tooltipTimer1 = setTimeout(() => { tooltip.classList.remove('tooltip-visible'); }, 4000);
-    }
-
-    function aplicarEstiloError(lista, offset, voz, xOffset) {
-        lista.forEach((n, i) => {
-            const idxReal = offset + i;
-            if (errorSeleccionado.voces.includes(voz)) {
-                if (idxReal === errorSeleccionado.tiempo_index || idxReal === errorSeleccionado.tiempo_index + 1) {
-                    n.setStyle({fillStyle: "#ff0000", strokeStyle: "#ff0000"});
-                    if (idxReal === errorSeleccionado.tiempo_index && voz === errorSeleccionado.voces[0]) {
-                        mostrarTooltip(i, xOffset);
-                    }
-                }
-            }
-        });
-    }
-
-    function generarStringVoz(slice, voz) {
-        return slice.map((t) => {
-            let n = t[voz];
-            if(n) return `${n}/q`;
-            let sil = (voz==='S')?'a5':(voz==='A')?'f4':(voz==='T')?'a3':'e2';
-            if(voz==='T' && t['B'] && (t['B'].includes('3')||t['B'].includes('4'))) sil='c4';
-            return `${sil}/q/r`;
-        }).join(', ');
-    }
-
-    function aplicarEstiloCursor(lista, offset, voz) {
-        lista.forEach((n, i) => {
-            if ((offset + i) === cursorIndex) {
-                n.setStyle({fillStyle: "#546de5", strokeStyle: "#546de5"});
-                if (voz === 'S') {
-                    const VF = Vex.Flow;
-                    if(VF.Annotation) n.addModifier(new VF.Annotation("▼").setFont("Arial",20,3).setVerticalJustification(1));
-                }
-            }
-        });
-    }
-
-    async function analizarPartitura() {
-        const panel = document.getElementById('panel-errores');
-        const resumen = document.getElementById('resumen-errores');
-        const lista = document.getElementById('lista-errores');
-        
-        resumen.innerHTML = "Analizando...";
-        lista.innerHTML = "";
-        panel.style.display = 'block';
-
-        try {
-            const res = await fetch('/analizar_partitura', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({partitura}) });
-            const data = await res.json();
-            erroresGlobales = data.errores;
-            lista.innerHTML = '';
-
-            if (erroresGlobales.length === 0) {
-                resumen.innerHTML = `✅ ${data.mensaje}`;
-                resumen.style.color = "var(--success)";
-                resumen.style.background = "#e8f9f0";
-            } else {
-                resumen.innerHTML = `⚠️ Se han encontrado ${erroresGlobales.length} errores`;
-                resumen.style.color = "var(--danger)";
-                resumen.style.background = "#ffebee";
-                
-                erroresGlobales.forEach((err, idx) => {
-                    const div = document.createElement('div');
-                    div.className = 'item-error';
-                    div.innerText = err.mensaje;
-                    div.onclick = () => resaltarError(idx);
-                    lista.appendChild(div);
-                });
-            }
-        } catch (e) { 
-            resumen.innerHTML = "Error de conexión";
-        }
-    }
-
-    function resaltarError(index) {
-        errorSeleccionado = erroresGlobales[index];
-        cursorIndex = errorSeleccionado.tiempo_index;
-        renderizarPartituraCompleta();
-        const sc = document.querySelector('.scroll-partitura');
-        if (cursorIndex > 3) sc.scrollLeft = (cursorIndex - 2) * 60;
-        document.querySelectorAll('.item-error').forEach((el, i) => el.classList.toggle('seleccionado', i === index));
-    }
-
-    function moverCursor(d) { 
-        cursorIndex+=d; if(cursorIndex<0)cursorIndex=0; if(cursorIndex>=TOTAL)cursorIndex=TOTAL-1; 
-        errorSeleccionado=null; 
-        document.getElementById('tooltip-error').classList.remove('tooltip-visible');
-        actualizarUI(); 
-        renderizarPartituraCompleta(); 
-        document.getElementById('panel-errores').style.display = 'none';
-    }
-
-    function actualizarUI() { document.getElementById('indicador-posicion').innerText = `C.${Math.floor(cursorIndex/4)+1} - T.${(cursorIndex%4)+1}`; }
-    function seleccionarVoz(v) { vozActiva=v; ['S','A','T','B'].forEach(x=>document.getElementById(`btn-${x}`).classList.toggle('voz-activa', x===v)); if(v==='S')octavaBase=5; if(v==='A')octavaBase=4; if(v==='T')octavaBase=3; if(v==='B')octavaBase=3; document.getElementById('display-octava').innerText=octavaBase; }
-    
-    function agregarNota(n) { 
-        partitura[cursorIndex][vozActiva]=n; 
-        const autoFlow = document.getElementById('chk-autoflow').checked;
-        if(autoFlow && n !== null) { 
-            if (vozActiva === 'B') seleccionarVoz('T');
-            else if (vozActiva === 'T') seleccionarVoz('A');
-            else if (vozActiva === 'A') seleccionarVoz('S');
-            else if (vozActiva === 'S') { seleccionarVoz('B'); moverCursor(1); }
-        }
-        renderizarPartituraCompleta(); 
-        document.getElementById('panel-errores').style.display = 'none';
-    }
-    
-    function cambiarOctava(d) { octavaBase+=d; if(octavaBase<1)octavaBase=1; if(octavaBase>7)octavaBase=7; document.getElementById('display-octava').innerText=octavaBase; }
-    function tocarBlanca(n) { agregarNota(n+octavaBase); }
-    function tocarDoAgudo() { agregarNota('C'+(octavaBase+1)); }
-    function tocarNegra(n, next) { 
-        let alt = modoAlteracion;
-        // Si es natural, tocar tecla negra no tiene sentido musical estricto (es una blanca)
-        // pero podemos interpretarlo como "nota alterada explicitamente".
-        // Para simplificar, si modo es 'n', forzamos nota natural (blanca)
-        if (alt === 'n') {
-            // Lógica compleja: ¿C# natural? -> C. 
-            // Mejor comportamiento: Si pulsas negra en modo natural, pon la nota blanca inferior.
-            agregarNota(n+octavaBase); 
-        } else {
-            agregarNota(n + alt + octavaBase); 
-        }
-    }
-    function borrarTodo() { if(confirm("¿Borrar todo?")) { partitura.forEach(p=>{p.S=null;p.A=null;p.T=null;p.B=null}); cursorIndex=0; errorSeleccionado=null; document.getElementById('panel-errores').style.display='none'; actualizarUI(); renderizarPartituraCompleta(); } }
-</script>
+    <!-- JavaScript de la aplicación -->
+    <script src="/static/js/app.js"></script>
 </body>
 </html>
