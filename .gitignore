@@ -1,25 +1,42 @@
 # Python
-venv/
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+*.so
 .Python
+venv/
+ENV/
+env/
 *.egg-info/
-
-# Logs
-*.log
-server.log
+dist/
+build/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
 
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
 # Environment
 .env
 .env.local
+
+# Coverage
+.coverage
+htmlcov/
+
+# Testing
+.pytest_cache/

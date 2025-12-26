@@ -1,17 +1,27 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Aula de Armonía</title>
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg?v=1">
-    <link rel="apple-touch-icon" href="/static/favicon.svg?v=1">
     <!-- Estilos -->
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css?v=2.0.0">
+    <!-- Tone.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <!-- VexFlow para notación musical -->
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
 </head>
+
+<!-- ========================================
+     AULA DE ARMONÍA - HTML Principal
+     Versión: 2.0 (Phase 2 Complete)
+     Última actualización: Diciembre 2025
+     ======================================== -->
+
 <body>
 
     <!-- MODAL ONBOARDING -->
@@ -42,6 +52,10 @@
                     <span><kbd>Enter</kbd></span>
                 </div>
                 <div class="shortcut">
+                    <span>Volver a Escribir:</span>
+                    <span><kbd>Esc</kbd></span>
+                </div>
+                <div class="shortcut">
                     <span>Deshacer/Rehacer:</span>
                     <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></span>
                 </div>
@@ -56,29 +70,120 @@
     <header>
         <h1>Aula de Armonía</h1>
         <div class="header-controls">
+            <!-- Selector de Tonalidad (Dropdown personalizado 2 columnas) -->
+            <div class="tonality-dropdown" id="tonality-dropdown">
+                <button class="tonality-trigger" id="tonality-trigger" onclick="AudioStudio.toggleTonalityDropdown()">
+                    <span id="tonality-label">Do M</span>
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="tonality-menu" id="tonality-menu">
+                    <div class="tonality-header">
+                        <span>Mayor</span>
+                        <span>menor</span>
+                    </div>
+                    <!-- Ciclo de quintas: 7# a 7b -->
+                    <div class="tonality-row" data-major="C#-major" data-minor="A#-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('C#-major', 'Do♯ M')">Do♯ M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('A#-minor', 'La♯ m')">La♯ m</span>
+                    </div>
+                    <div class="tonality-row" data-major="F#-major" data-minor="D#-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('F#-major', 'Fa♯ M')">Fa♯ M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('D#-minor', 'Re♯ m')">Re♯ m</span>
+                    </div>
+                    <div class="tonality-row" data-major="B-major" data-minor="G#-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('B-major', 'Si M')">Si M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('G#-minor', 'Sol♯ m')">Sol♯ m</span>
+                    </div>
+                    <div class="tonality-row" data-major="E-major" data-minor="C#-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('E-major', 'Mi M')">Mi M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('C#-minor', 'Do♯ m')">Do♯ m</span>
+                    </div>
+                    <div class="tonality-row" data-major="A-major" data-minor="F#-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('A-major', 'La M')">La M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('F#-minor', 'Fa♯ m')">Fa♯ m</span>
+                    </div>
+                    <div class="tonality-row" data-major="D-major" data-minor="B-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('D-major', 'Re M')">Re M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('B-minor', 'Si m')">Si m</span>
+                    </div>
+                    <div class="tonality-row" data-major="G-major" data-minor="E-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('G-major', 'Sol M')">Sol M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('E-minor', 'Mi m')">Mi m</span>
+                    </div>
+                    <div class="tonality-row selected" data-major="C-major" data-minor="A-minor">
+                        <span class="ton-major active" onclick="AudioStudio.selectTonality('C-major', 'Do M')">Do
+                            M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('A-minor', 'La m')">La m</span>
+                    </div>
+                    <div class="tonality-row" data-major="F-major" data-minor="D-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('F-major', 'Fa M')">Fa M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('D-minor', 'Re m')">Re m</span>
+                    </div>
+                    <div class="tonality-row" data-major="Bb-major" data-minor="G-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('Bb-major', 'Si♭ M')">Si♭ M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('G-minor', 'Sol m')">Sol m</span>
+                    </div>
+                    <div class="tonality-row" data-major="Eb-major" data-minor="C-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('Eb-major', 'Mi♭ M')">Mi♭ M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('C-minor', 'Do m')">Do m</span>
+                    </div>
+                    <div class="tonality-row" data-major="Ab-major" data-minor="F-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('Ab-major', 'La♭ M')">La♭ M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('F-minor', 'Fa m')">Fa m</span>
+                    </div>
+                    <div class="tonality-row" data-major="Db-major" data-minor="Bb-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('Db-major', 'Re♭ M')">Re♭ M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('Bb-minor', 'Si♭ m')">Si♭ m</span>
+                    </div>
+                    <div class="tonality-row" data-major="Gb-major" data-minor="Eb-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('Gb-major', 'Sol♭ M')">Sol♭ M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('Eb-minor', 'Mi♭ m')">Mi♭ m</span>
+                    </div>
+                    <div class="tonality-row" data-major="Cb-major" data-minor="Ab-minor">
+                        <span class="ton-major" onclick="AudioStudio.selectTonality('Cb-major', 'Do♭ M')">Do♭ M</span>
+                        <span class="ton-minor" onclick="AudioStudio.selectTonality('Ab-minor', 'La♭ m')">La♭ m</span>
+                    </div>
+                </div>
+            </div>
             <!-- Toggle Modo -->
             <div class="mode-toggle">
-                <button id="btn-mode-write" class="active" onclick="AudioStudio.setAppMode('write')"><span class="btn-icon">✏️</span><span class="btn-text"> Escribir</span></button>
-                <button id="btn-mode-review" onclick="AudioStudio.setAppMode('review')"><span class="btn-icon">🔍</span><span class="btn-text"> Revisar</span></button>
+                <button id="btn-mode-write" class="active" onclick="AudioStudio.setAppMode('write')"><span
+                        class="btn-icon">✏️</span><span class="btn-text"> Escribir</span></button>
+                <button id="btn-mode-review" onclick="AudioStudio.setAppMode('review')"><span
+                        class="btn-icon">🔍</span><span class="btn-text"> Revisar</span></button>
             </div>
-            <button class="btn-undo" id="btn-undo" onclick="AudioStudio.undo()" data-tooltip="Deshacer (Ctrl+Z)" disabled>↶</button>
-            <button class="btn-redo" id="btn-redo" onclick="AudioStudio.redo()" data-tooltip="Rehacer (Ctrl+Shift+Z)" disabled>↷</button>
+
+            <button class="btn-undo write-only" id="btn-undo" onclick="AudioStudio.undo()"
+                data-tooltip="Deshacer (Ctrl+Z)" disabled>↶</button>
+            <button class="btn-redo write-only" id="btn-redo" onclick="AudioStudio.redo()"
+                data-tooltip="Rehacer (Ctrl+Shift+Z)" disabled>↷</button>
+            <!-- Botón Borrar (Móvil/Desktop) -->
+            <button class="btn-undo btn-trash-header write-only desktop-only" onclick="borrarTodo()"
+                data-tooltip="Borrar todo">🗑️</button>
+
             <label class="auto-flow-switch write-only">
                 <input type="checkbox" id="chk-autoflow" checked> Auto
             </label>
-            <div class="input-switch write-only">
-                <label>Entrada</label>
-                <select id="input-mode" onchange="AudioStudio.setInputMode(this.value)">
-                    <option value="piano">Piano</option>
-                    <option value="buttons">Botones</option>
-                </select>
+
+            <!-- Contextual Header (Desktop Only) -->
+            <div class="header-context review-only desktop-only">
+                <div class="header-error-badge" id="header-error-badge">
+                    <span class="badge-icon">⚠️</span>
+                    <span class="badge-text" id="header-error-text">0 errores</span>
+                </div>
+                <button class="btn-quick-play desktop-only" onclick="reproducirPartitura()">
+                    ▶ Play
+                </button>
             </div>
         </div>
     </header>
 
     <section id="stage">
         <div class="scroll-partitura" id="contenedor-scroll">
-            <div id="lienzo-partitura"></div>
+            <div class="partitura-wrapper">
+                <div id="lienzo-partitura"></div>
+                <div id="grados-container" class="grados-container"></div>
+            </div>
             <div id="tooltip-error"></div>
         </div>
     </section>
@@ -90,22 +195,27 @@
             <div id="lista-errores"></div>
         </div>
 
-        <!-- Fila A -->
+        <!-- Fila A: Navegación + Voces -->
         <div class="toolbar-row">
             <div class="nav-group">
                 <button class="btn-nav" onclick="moverCursor(-1)" data-tooltip="Anterior (←)">❮</button>
                 <div id="indicador-posicion">C.1 - T.1</div>
                 <button class="btn-nav" onclick="moverCursor(1)" data-tooltip="Siguiente (→)">❯</button>
             </div>
+
             <div class="voices-group">
-                <button class="btn-voz" id="btn-B" data-key="1" onclick="seleccionarVoz('B')" data-tooltip="Bajo (1)">B</button>
-                <button class="btn-voz" id="btn-T" data-key="2" onclick="seleccionarVoz('T')" data-tooltip="Tenor (2)">T</button>
-                <button class="btn-voz" id="btn-A" data-key="3" onclick="seleccionarVoz('A')" data-tooltip="Contralto (3)">A</button>
-                <button class="btn-voz" id="btn-S" data-key="4" onclick="seleccionarVoz('S')" data-tooltip="Soprano (4)">S</button>
+                <button class="btn-voz" id="btn-B" data-key="1" onclick="seleccionarVoz('B')"
+                    data-tooltip="Bajo (1)">B</button>
+                <button class="btn-voz" id="btn-T" data-key="2" onclick="seleccionarVoz('T')"
+                    data-tooltip="Tenor (2)">T</button>
+                <button class="btn-voz" id="btn-A" data-key="3" onclick="seleccionarVoz('A')"
+                    data-tooltip="Contralto (3)">A</button>
+                <button class="btn-voz" id="btn-S" data-key="4" onclick="seleccionarVoz('S')"
+                    data-tooltip="Soprano (4)">S</button>
             </div>
         </div>
 
-        <!-- Fila B -->
+        <!-- Fila B: Piano / Input -->
         <div class="piano-row">
             <!-- Modo Botones (móvil) -->
             <div id="mobile-input-grid" class="mobile-input-grid">
@@ -118,24 +228,20 @@
                     <button class="btn-note" onclick="AudioStudio.inputNote('A')">La</button>
                     <button class="btn-note" onclick="AudioStudio.inputNote('B')">Si</button>
                 </div>
-                <div class="row">
-                    <button id="btn-alt-sharp" class="btn-alt" onclick="AudioStudio.setAlteracion('#')">♯</button>
-                    <button id="btn-alt-flat" class="btn-alt" onclick="AudioStudio.setAlteracion('b')">♭</button>
-                    <button id="btn-alt-natural" class="btn-alt active" onclick="AudioStudio.setAlteracion('n')">♮</button>
-                </div>
-                <div class="row">
-                    <span class="ctrl-label">Oct</span>
-                    <button class="btn-mini" onclick="AudioStudio.changeOctave(-1)">−</button>
-                    <span id="mobile-octava" class="oct-display">3</span>
-                    <button class="btn-mini" onclick="AudioStudio.changeOctave(1)">+</button>
-                </div>
-            </div>
-            <div class="side-controls">
-                <div class="ctrl-capsule">
-                    <span class="ctrl-label">Oct</span>
-                    <button class="btn-mini" onclick="cambiarOctava(-1)" data-tooltip="Oct -">−</button>
-                    <span id="display-octava" style="font-weight:bold; font-size:0.9rem; width:15px; text-align:center;">3</span>
-                    <button class="btn-mini" onclick="cambiarOctava(1)" data-tooltip="Oct +">+</button>
+                <!-- Alteraciones Compactas -->
+                <div class="row row-compact">
+                    <div class="accidental-group">
+                        <button id="btn-alt-sharp" class="btn-alt" onclick="AudioStudio.setAlteracion('#')">♯</button>
+                        <button id="btn-alt-flat" class="btn-alt" onclick="AudioStudio.setAlteracion('b')">♭</button>
+                        <button id="btn-alt-natural" class="btn-alt active"
+                            onclick="AudioStudio.setAlteracion('n')">♮</button>
+                    </div>
+                    <!-- Octava Mini -->
+                    <div class="octave-group">
+                        <button class="btn-mini" onclick="AudioStudio.changeOctave(-1)">−</button>
+                        <span id="mobile-octava" class="oct-display">3</span>
+                        <button class="btn-mini" onclick="AudioStudio.changeOctave(1)">+</button>
+                    </div>
                 </div>
             </div>
 
@@ -159,25 +265,117 @@
                 </div>
             </div>
 
-            <div class="side-controls">
+            <!-- Side Controls (Desktop Only) -->
+            <div class="side-controls desktop-only">
+                <div class="ctrl-capsule">
+                    <span class="ctrl-label">Oct</span>
+                    <button class="btn-mini" onclick="cambiarOctava(-1)" data-tooltip="Oct -">−</button>
+                    <span id="display-octava"
+                        style="font-weight:bold; font-size:0.9rem; width:15px; text-align:center;">3</span>
+                    <button class="btn-mini" onclick="cambiarOctava(1)" data-tooltip="Oct +">+</button>
+                </div>
                 <div class="ctrl-capsule">
                     <div class="switch-alt">
-                        <label><input type="radio" name="alt" value="#" onchange="AudioStudio.setAlteracion('#')"><span>♯</span></label>
-                        <label><input type="radio" name="alt" value="b" onchange="AudioStudio.setAlteracion('b')"><span>♭</span></label>
-                        <label><input type="radio" name="alt" value="n" checked onchange="AudioStudio.setAlteracion('n')"><span>♮</span></label>
+                        <label><input type="radio" name="alt" value="#"
+                                onchange="AudioStudio.setAlteracion('#')"><span>♯</span></label>
+                        <label><input type="radio" name="alt" value="b"
+                                onchange="AudioStudio.setAlteracion('b')"><span>♭</span></label>
+                        <label><input type="radio" name="alt" value="n" checked
+                                onchange="AudioStudio.setAlteracion('n')"><span>♮</span></label>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Action Bar: Ahora contiene diferentes controles según el modo -->
         <div class="action-bar">
-            <button class="btn-main btn-trash write-only" onclick="borrarTodo()" data-tooltip="Borrar todo (Ctrl+Shift+A)">🗑️ Borrar</button>
-            <button class="btn-main btn-check write-only" id="btn-corregir" onclick="analizarPartitura()" data-tooltip="Analizar (Enter)">🔍 Corregir</button>
-            <button class="btn-main btn-check review-only" onclick="AudioStudio.setAppMode('write')" style="background: var(--primary);">✏️ Volver a Escribir</button>
+            <!-- Mobile Mode Controls (Escribir/Revisar) - Visible en modo ESCRIBIR -->
+            <div class="mode-controls-mobile">
+                <button id="btn-mode-write-mobile" class="btn-mode-mobile active"
+                    onclick="AudioStudio.setAppMode('write')">
+                    ✏️ Escribir
+                </button>
+                <button id="btn-mode-review-mobile" class="btn-mode-mobile" onclick="AudioStudio.setAppMode('review')">
+                    🔍 Revisar
+                </button>
+                <button class="btn-trash-mobile" onclick="AudioStudio.clearAll()">
+                    🗑️ Borrar
+                </button>
+            </div>
+
+            <!-- Playback Controls - Visible en modo REVISAR -->
+            <div class="playback-group" id="bottom-playback">
+                <!-- Navigation buttons (desktop only) -->
+                <button class="btn-nav-small desktop-only" onclick="AudioStudio.prevCompas()"
+                    data-tooltip="Compás Anterior">⏮</button>
+
+                <!-- Main playback controls -->
+                <button class="btn-nav" onclick="reproducirPartitura()" data-tooltip="Reproducir (Espacio)">▶</button>
+                <button class="btn-nav" onclick="pausarPartitura()" data-tooltip="Pausar (P)">⏸</button>
+                <button class="btn-nav" onclick="detenerPartitura()" data-tooltip="Detener (Espacio)">⏹</button>
+
+                <!-- Navigation buttons (desktop only) -->
+                <button class="btn-nav-small desktop-only" onclick="AudioStudio.nextCompas()"
+                    data-tooltip="Compás Siguiente">⏭</button>
+
+                <!-- Loop toggle (desktop only) -->
+                <button id="btn-loop" class="btn-feature desktop-only" onclick="AudioStudio.toggleLoop()"
+                    data-tooltip="Modo Loop">
+                    <span class="feature-icon">🔄</span>
+                    <span class="feature-text">Loop</span>
+                </button>
+
+                <!-- Speed control (desktop only) -->
+                <div class="speed-control desktop-only">
+                    <label>Velocidad:</label>
+                    <select id="playback-speed" onchange="AudioStudio.setPlaybackSpeed(this.value)">
+                        <option value="0.5">50%</option>
+                        <option value="0.75">75%</option>
+                        <option value="1" selected>100%</option>
+                        <option value="1.25">125%</option>
+                    </select>
+                </div>
+
+                <!-- BPM control -->
+                <div class="bpm-control" data-tooltip="Tempo (BPM)">
+                    <span class="bpm-label">♩=</span>
+                    <input type="number" id="bpm-input" value="120" min="40" max="240" step="5"
+                        onchange="AudioStudio.setBpm(this.value)">
+                </div>
+            </div>
+
+            <!-- Desktop Action Buttons - Only visible on desktop -->
+            <div class="desktop-actions">
+                <button id="btn-corregir" class="btn-main btn-check" onclick="AudioStudio.analyzePartiture()">
+                    ✅ Corregir
+                </button>
+                <button class="btn-main btn-danger" onclick="AudioStudio.clearAll()">
+                    🗑️ Borrar
+                </button>
+            </div>
         </div>
     </section>
 
+    <!-- Error Sidebar (Desktop Only) -->
+    <aside id="error-sidebar" class="error-sidebar">
+        <div class="sidebar-toggle-btn" onclick="AudioStudio.toggleErrorSidebar()">
+            <span class="error-count-badge" id="sidebar-error-count">0</span>
+            <span class="toggle-icon">📋</span>
+        </div>
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h3>Errores Detectados</h3>
+                <button class="btn-close-sidebar" onclick="AudioStudio.toggleErrorSidebar()">✕</button>
+            </div>
+            <div id="sidebar-error-list" class="error-list-sidebar">
+                <!-- Errors populated dynamically -->
+                <div class="no-errors-sidebar">No se han detectado errores</div>
+            </div>
+        </div>
+    </aside>
+
     <!-- JavaScript de la aplicación -->
-    <script src="/static/js/app.js"></script>
+    <script type="module" src="/static/js/app.js?v=2.0.0"></script>
 </body>
+
 </html>
