@@ -1,0 +1,134 @@
+[
+  {
+    "id": "md_001",
+    "name": "S-A excesiva: 14 semitonos",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "G3",
+      "S": "C5",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "F2",
+      "T": "C3",
+      "A": "A3",
+      "S": "F4",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "A",
+      "S"
+    ],
+    "description": "Soprano (C5) está a 14 semitonos del Alto (G3)"
+  },
+  {
+    "id": "md_002",
+    "name": "T-A excesiva: 15 semitonos",
+    "chord1": {
+      "B": "C3",
+      "T": "D3",
+      "A": "G4",
+      "S": "C5",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "G2",
+      "T": "B2",
+      "A": "D3",
+      "S": "G3",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "T",
+      "A"
+    ],
+    "description": "Alto (G4) está a 15 semitonos del Tenor (D3)"
+  },
+  {
+    "id": "md_003",
+    "name": "S-A límite: Exactamente 12 (octava justa)",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "G3",
+      "S": "G4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "F2",
+      "T": "A2",
+      "A": "C3",
+      "S": "F3",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "description": "Octava justa (12 semitonos) es válida"
+  },
+  {
+    "id": "md_004",
+    "name": "T-B amplia: 18 semitonos (permitido)",
+    "chord1": {
+      "B": "C2",
+      "T": "F3",
+      "A": "A3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "G2",
+      "T": "D3",
+      "A": "G3",
+      "S": "B3",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "description": "T-B puede ser >8ª (regla no aplica al bajo)"
+  },
+  {
+    "id": "md_005",
+    "name": "Todas las distancias válidas",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "G3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "G2",
+      "T": "D3",
+      "A": "G3",
+      "S": "B3",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "description": "Disposición cerrada, todas las voces dentro de límites"
+  },
+  {
+    "id": "md_006",
+    "name": "T-A: 13 semitonos (excede por 1)",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "F4",
+      "S": "A4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "F2",
+      "T": "A2",
+      "A": "C3",
+      "S": "F3",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "T",
+      "A"
+    ],
+    "description": "13 semitonos excede el límite de octava por 1 semitono"
+  }
+]

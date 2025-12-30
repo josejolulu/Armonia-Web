@@ -1,0 +1,138 @@
+[
+  {
+    "id": "vo_001",
+    "name": "Invasión descendente: S baja más que A estaba",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "G3",
+      "S": "C5",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "G2",
+      "T": "D3",
+      "A": "B3",
+      "S": "F3",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "A",
+      "S"
+    ],
+    "description": "Soprano en chord2 (F3) está por debajo de donde estaba Alto en chord1 (G3)"
+  },
+  {
+    "id": "vo_002",
+    "name": "Invasión ascendente: T sube más que A estaba",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "A3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "F2",
+      "T": "C4",
+      "A": "F4",
+      "S": "A4",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "T",
+      "A"
+    ],
+    "description": "Tenor en chord2 (C4) está por encima de donde estaba Alto en chord1 (A3)"
+  },
+  {
+    "id": "vo_003",
+    "name": "Invasión B-T: Bajo sube más que Tenor estaba",
+    "chord1": {
+      "B": "C2",
+      "T": "G3",
+      "A": "C4",
+      "S": "E4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "A3",
+      "T": "D4",
+      "A": "F4",
+      "S": "A4",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "B",
+      "T"
+    ],
+    "description": "Bajo en chord2 (A3) está por encima de donde estaba Tenor en chord1 (G3)"
+  },
+  {
+    "id": "vo_004",
+    "name": "Movimiento válido: Sin invasiones",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "G3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "G2",
+      "T": "D3",
+      "A": "G3",
+      "S": "B3",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "description": "Voces se mueven sin invadir registros"
+  },
+  {
+    "id": "vo_005",
+    "name": "Límite exacto: Voz llega al límite pero no lo cruza",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "G3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "F2",
+      "T": "G3",
+      "A": "C4",
+      "S": "F4",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "description": "Tenor llega a G3 (donde estaba A), pero no lo supera"
+  },
+  {
+    "id": "vo_006",
+    "name": "Invasión múltiple: T invade A y A invade S",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "A3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "G2",
+      "T": "B3",
+      "A": "D4",
+      "S": "G4",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "T",
+      "A"
+    ],
+    "description": "Primera invasión detectada: Tenor invade Alto"
+  }
+]

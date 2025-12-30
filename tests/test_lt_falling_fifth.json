@@ -1,0 +1,55 @@
+[
+    {
+        "id": "lt_falling_P5",
+        "name": "V7/ii -> ii (A7 -> Dm) [Caída 5ta Justa]",
+        "description": "Roots A->D is Falling P5. Sensible C# must resolve to D. C# is M3 of A.",
+        "chord1": {
+            "B": "A2",
+            "T": "G3",
+            "A": "C#4",
+            "S": "E4",
+            "root": "A",
+            "quality": "dominant",
+            "key": "C Major"
+        },
+        "chord2": {
+            "B": "D3",
+            "T": "F3",
+            "A": "D4",
+            "S": "A4",
+            "root": "D",
+            "quality": "minor",
+            "key": "C Major"
+        },
+        "key": "C Major",
+        "expected": "OK"
+    },
+    {
+        "id": "lt_falling_P5_fail",
+        "name": "V7/ii -> ii (A7 -> Dm) [Fallo Sensible]",
+        "description": "Sensible C# goes to E (skip). MUST ERROR.",
+        "chord1": {
+            "B": "A2",
+            "T": "G3",
+            "A": "C#4",
+            "S": "E4",
+            "root": "A",
+            "quality": "dominant",
+            "key": "C Major"
+        },
+        "chord2": {
+            "B": "D3",
+            "T": "F3",
+            "A": "E4",
+            "S": "A4",
+            "root": "D",
+            "quality": "minor",
+            "key": "C Major"
+        },
+        "key": "C Major",
+        "expected": "ERROR",
+        "voices_affected": [
+            "A"
+        ]
+    }
+]

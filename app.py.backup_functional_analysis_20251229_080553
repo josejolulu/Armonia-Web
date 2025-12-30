@@ -1,39 +1,12 @@
 from flask import Flask, render_template, request, jsonify
+import music21
 import logging
+from analizador_tonal import CerebroTonal, crear_cerebro_tonal
+from harmonic_rules import RulesEngine
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# ============================================================================
-# OPTIMIZACIÓN RAM: Lazy Loading de Dependencias Pesadas
-# ============================================================================
-# music21 consume ~180-220 MB. Cargarla solo cuando se necesita
-# reduce el consumo base de memoria, crítico para Render Free (512 MB)
-# ============================================================================
-
-_music21_loaded = False
-_analizador_loaded = False
-
-def _lazy_load_music21():
-    """Carga music21 solo la primera vez que se necesita"""
-    global _music21_loaded
-    if not _music21_loaded:
-        global music21
-        import music21 as m21
-        music21 = m21
-        _music21_loaded = True
-        logger.info("music21 cargado (lazy loading)")
-
-def _lazy_load_analizador():
-    """Carga módulos de análisis solo cuando se necesitan"""
-    global _analizador_loaded
-    if not _analizador_loaded:
-        global CerebroTonal, crear_cerebro_tonal, RulesEngine
-        from analizador_tonal import CerebroTonal, crear_cerebro_tonal
-        from harmonic_rules import RulesEngine
-        _analizador_loaded = True
-        logger.info("Módulos de análisis cargados (lazy loading)")
 
 # Instancia global del Cerebro Tonal (se configura por request)
 cerebro_tonal = None
@@ -48,8 +21,6 @@ def pagina_inicio():
 # --- UTILIDADES ---
 def obtener_nota_music21(nota_str):
     """Convierte string de nota a objeto music21.Pitch con validación"""
-    _lazy_load_music21()  # Cargar music21 si aún no está cargado
-    
     if not nota_str:
         return None
     if not isinstance(nota_str, str):
@@ -77,13 +48,8 @@ def crear_error(compas, tiempo_global, voces_implicadas, mensaje, color='#FF0000
     }
 
 # --- MOTOR DE ANÁLISIS ---
-def analizar_par_acordes(n_compas, n_tiempo, notas_actual, notas_siguiente, idx_tiempo_actual, analisis_actual=None, analisis_siguiente=None):
-    """Analiza dos acordes consecutivos aplicando todas las reglas de armonía
-    
-    Args:
-        analisis_actual: Dict opcional con análisis funcional del acorde actual (desde analizador_tonal)
-        analisis_siguiente: Dict opcional con análisis funcional del acorde siguiente
-    """
+def analizar_par_acordes(n_compas, n_tiempo, notas_actual, notas_siguiente, idx_tiempo_actual):
+    """Analiza dos acordes consecutivos aplicando todas las reglas de armonía"""
     errores = []
     nombres = {'S': 'Soprano', 'A': 'Contralto', 'T': 'Tenor', 'B': 'Bajo'}
     voces_ordenadas = ['B', 'T', 'A', 'S']
@@ -106,10 +72,11 @@ def analizar_par_acordes(n_compas, n_tiempo, notas_actual, notas_siguiente, idx_
         
         # Detectar consonancias perfectas con motor robusto (incluye excepciones)
         # Motor nuevo detecta: Quintas y Octavas (paralelas/consecutivas)
-        _analizar_conduccion_voces(acorde_act, acorde_sig, n_compas, idx_tiempo_actual, errores, analisis_actual, analisis_siguiente)
+        _analizar_conduccion_voces(acorde_act, acorde_sig, n_compas, idx_tiempo_actual, errores)
         
-        # NOTA: _analizar_septimas fue ELIMINADO
-        # La resolución de séptimas ya está cubierta por SeventhResolutionRule en el motor
+        # Analizar resolución de séptimas
+        _analizar_septimas(acorde_act, acorde_sig, voces_ordenadas, nombres, 
+                          n_compas, idx_tiempo_actual, errores)
         
         # Invasiones ahora manejadas por motor (VoiceOverlapRule)
     
@@ -119,16 +86,12 @@ def analizar_par_acordes(n_compas, n_tiempo, notas_actual, notas_siguiente, idx_
     return errores
 
 
-def _analizar_conduccion_voces(acorde_act, acorde_sig, n_compas, idx_tiempo_actual, errores, analisis_actual=None, analisis_siguiente=None):
+def _analizar_conduccion_voces(acorde_act, acorde_sig, n_compas, idx_tiempo_actual, errores):
     """
     Detecta errores de conducción usando el motor de reglas armónicas.
     
     Esta función integra el nuevo motor robusto que incluye excepciones
     (V-VII, cambio de disposición, etc.) con el sistema existente.
-    
-    Args (nuevos):
-        analisis_actual: Dict opcional con análisis funcional del acorde actual
-        analisis_siguiente: Dict opcional con análisis funcional del acorde siguiente
     
     Args:
         acorde_act: Dict de {voz: music21.Pitch}
@@ -153,37 +116,19 @@ def _analizar_conduccion_voces(acorde_act, acorde_sig, n_compas, idx_tiempo_actu
             return
         
         # Contexto mínimo (tonalidad del motor)
-        key_str = f"{harmonic_engine.key} {harmonic_engine.mode}"
         context = {
-            'key': key_str
+            'key': f"{harmonic_engine.key} {harmonic_engine.mode}"
         }
         
-        # FASE 2: Enriquecer con análisis funcional (IMPLEMENTADO)
-        if analisis_actual:
-            chord1.update({
-                'root': analisis_actual.get('fundamental'),  # Fundamental del acorde (ej: 'G' en V)
-                'degree': analisis_actual.get('grado'),      # Grado romano (ej: 'V', 'I')
-                'quality': analisis_actual.get('tipo'),      # Calidad (ej: 'major', 'minor')
-                'inversion': analisis_actual.get('inversion'),  # Estado (0, 1, 2)
-                'degree_num': analisis_actual.get('grado_num'),  # Número (1-7)
-                'key': key_str  # AÑADIDO: Key para LeadingToneResolutionRule
-            })
-        else:
-            # Añadir key incluso si no hay análisis funcional
-            chord1['key'] = key_str
-        
-        if analisis_siguiente:
-            chord2.update({
-                'root': analisis_siguiente.get('fundamental'),
-                'degree': analisis_siguiente.get('grado'),
-                'quality': analisis_siguiente.get('tipo'),
-                'inversion': analisis_siguiente.get('inversion'),
-                'degree_num': analisis_siguiente.get('grado_num'),
-                'key': key_str  # AÑADIDO: Key para LeadingToneResolutionRule
-            })
-        else:
-            # Añadir key incluso si no hay análisis funcional
-            chord2['key'] = key_str
+        # TODO Fase 2: Enriquecer con análisis funcional para mejor detección de excepciones
+        # if analisis_actual and analisis_siguiente:
+        #     chord1.update({
+        #         'degree_num': analisis_actual.get('grado_num'),
+        #         'function': analisis_actual.get('funcion'),
+        #         'root': analisis_actual.get('grado'),
+        #         'quality': '...',
+        #         'inversion': analisis_actual.get('inversion')
+        #     })
         
         # Validar con motor de reglas
         detected_errors = harmonic_engine.validate_progression(chord1, chord2, context)
@@ -204,15 +149,33 @@ def _analizar_conduccion_voces(acorde_act, acorde_sig, n_compas, idx_tiempo_actu
 
 
 
+def _analizar_septimas(acorde_act, acorde_sig, voces_ordenadas, nombres, 
+                       n_compas, idx_tiempo_actual, errores):
+    """Verifica que las séptimas se resuelvan correctamente"""
+    try:
+        chord_m21 = music21.chord.Chord([acorde_act[v] for v in voces_ordenadas])
+        
+        if chord_m21.seventh:
+            nom_7 = chord_m21.seventh.nameWithOctave
+            v_7 = next((v for v in voces_ordenadas if acorde_act[v].nameWithOctave == nom_7), None)
+            
+            if v_7:
+                diff = acorde_sig[v_7].ps - acorde_act[v_7].ps
+                
+                # Séptima debe bajar 1 o 2 semitonos
+                if diff >= 0:
+                    errores.append(crear_error(n_compas, idx_tiempo_actual, [v_7], 
+                        f"Séptima en {nombres[v_7]} no resuelve"))
+                elif diff < -2:
+                    errores.append(crear_error(n_compas, idx_tiempo_actual, [v_7], 
+                        f"Séptima en {nombres[v_7]} salta"))
+    except Exception as e:
+        logger.debug(f"No se pudo analizar séptima: {str(e)}")
 
 @app.route('/analizar_partitura', methods=['POST'])
 def analizar_partitura():
     """Endpoint para analizar una partitura completa"""
     global cerebro_tonal
-    
-    # OPTIMIZACIÓN: Cargar módulos pesados solo cuando se necesitan
-    _lazy_load_music21()
-    _lazy_load_analizador()
     
     try:
         # Validación de entrada
@@ -220,33 +183,19 @@ def analizar_partitura():
         if not datos:
             return jsonify({'errores': [], 'mensaje': 'Error: datos vacíos'}), 400
         
-        tonalidad_str = datos.get('tonalidad', 'Do M')
-        voces = datos.get('voces', {})
-        compas = datos.get('compas', '4/4')
+        partitura = datos.get('partitura', [])
+        tonalidad = datos.get('tonalidad', {'tonica': 'C', 'modo': 'major'})
         
-        if not voces:
-            return jsonify({'errores': [], 'mensaje': 'Error: no hay voces'}), 400
+        # Inicializar/actualizar el Cerebro Tonal con la tonalidad
+        cerebro_tonal = crear_cerebro_tonal(tonalidad['tonica'], tonalidad['modo'])
+        logger.info(f"Analizando en tonalidad: {tonalidad['tonica']} {tonalidad['modo']}")
         
-        # Parsear tonalidad
-        try:
-            partes = tonalidad_str.split()
-            if len(partes) != 2:
-                raise ValueError("Formato incorrecto")
-            nota, modo_letra = partes
-            modo = 'major' if modo_letra.upper() == 'M' else 'minor'
-        except:
-            return jsonify({'errores': [], 'mensaje': f'Tonalidad inválida: {tonalidad_str}'}), 400
-        
-        # Crear/actualizar CerebroTonal y RulesEngine
-        cerebro_tonal = crear_cerebro_tonal(nota, modo)
-        logger.info(f"Analizando en tonalidad: {nota} {modo}")
-        
+        # Inicializar motor de reglas armónicas
         global harmonic_engine
-        harmonic_engine = RulesEngine(key=nota, mode=modo)
+        harmonic_engine = RulesEngine(key=tonalidad['tonica'], mode=tonalidad['modo'])
         logger.info(f"Motor de reglas armónicas inicializado")
         
         # Validar formato de partitura
-        partitura = datos.get('partitura', []) # Assuming 'partitura' is still expected
         if not isinstance(partitura, list) or len(partitura) == 0:
             return jsonify({'errores': [], 'mensaje': 'Error: partitura inválida'}), 400
         
@@ -270,18 +219,12 @@ def analizar_partitura():
         for i in range(len(partitura) - 1):
             if any(partitura[i].values()) and any(partitura[i+1].values()):
                 try:
-                    # Buscar análisis funcional correspondientes
-                    analisis_act = next((a for a in analisis_acordes if a['tiempo_index'] == i), None)
-                    analisis_sig = next((a for a in analisis_acordes if a['tiempo_index'] == i+1), None)
-                    
                     errores.extend(analizar_par_acordes(
                         (i//4)+1,           # número de compás
                         (i%4)+1,            # tiempo dentro del compás
                         partitura[i], 
                         partitura[i+1], 
-                        i,                   # índice global
-                        analisis_act,        # análisis funcional actual
-                        analisis_sig         # análisis funcional siguiente
+                        i                   # índice global
                     ))
                 except Exception as e:
                     logger.error(f"Error analizando compás {(i//4)+1}: {str(e)}")
@@ -291,16 +234,12 @@ def analizar_partitura():
         ult = len(partitura) - 1
         if any(partitura[ult].values()):
             try:
-                analisis_ult = next((a for a in analisis_acordes if a['tiempo_index'] == ult), None)
-                
                 errores.extend(analizar_par_acordes(
                     (ult//4)+1, 
                     (ult%4)+1, 
                     partitura[ult], 
                     {}, 
-                    ult,
-                    analisis_ult,  # análisis funcional del último acorde
-                    None           # no hay siguiente
+                    ult
                 ))
             except Exception as e:
                 logger.error(f"Error analizando último acorde: {str(e)}")

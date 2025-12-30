@@ -1,0 +1,29 @@
+[
+  {
+    "id": "lt_iii7_fix",
+    "name": "iii7 -> vi: NO debe detectar sensible (FIX)",
+    "description": "Caso reportado por usuario: Si (B) en iii7 es la 5ª, NO la sensible activa",
+    "chord1": {
+      "S": "G4",
+      "A": "E4",
+      "T": "B3",
+      "B": "E3",
+      "root": "E",
+      "quality": "minor",
+      "key": "C major",
+      "degree_num": 3,
+      "inversion": 0
+    },
+    "chord2": {
+      "S": "A4",
+      "A": "E4",
+      "T": "C4",
+      "B": "A2",
+      "root": "A",
+      "quality": "minor",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "notes": "ANTES del fix: Detectaba sensible. DESPUÉS: NO debe detectar (iii no es dominante)"
+  }
+]

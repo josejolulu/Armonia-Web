@@ -885,12 +885,22 @@ const AudioStudio = {
     applyErrorStyle(noteList, offset, voice, xOffset) {
         noteList.forEach((n, i) => {
             const idxReal = offset + i;
-            if (this.state.errorSeleccionado.voces.includes(voice)) {
+
+            // CRITICAL FIX: Manejar el caso voices=['?'] (factor omitido)
+            // Cuando no sabemos qué voz específica tiene el error, mostrarlo en todas
+            const isVoiceAffected =
+                this.state.errorSeleccionado.voces.includes(voice) ||
+                (this.state.errorSeleccionado.voces.includes('?') &&
+                    (idxReal === this.state.errorSeleccionado.tiempo_index ||
+                        idxReal === this.state.errorSeleccionado.tiempo_index + 1));
+
+            if (isVoiceAffected) {
                 if (idxReal === this.state.errorSeleccionado.tiempo_index ||
                     idxReal === this.state.errorSeleccionado.tiempo_index + 1) {
                     n.setStyle({ fillStyle: "#ff0000", strokeStyle: "#ff0000" });
                     if (idxReal === this.state.errorSeleccionado.tiempo_index &&
-                        voice === this.state.errorSeleccionado.voces[0]) {
+                        (voice === this.state.errorSeleccionado.voces[0] ||
+                            this.state.errorSeleccionado.voces[0] === '?')) {
                         this.showTooltip(i, xOffset);
                     }
                 }
@@ -996,8 +1006,22 @@ const AudioStudioExtensions = {
         errores.forEach((err, idx) => {
             const item = document.createElement('div');
             item.className = 'error-item-sidebar';
+            const errorColor = err.color || '#FF0000';
+
+            // Calcular si el color de fondo es claro u oscuro
+            // Extraer RGB del color hexadecimal
+            const r = parseInt(errorColor.slice(1, 3), 16);
+            const g = parseInt(errorColor.slice(3, 5), 16);
+            const b = parseInt(errorColor.slice(5, 7), 16);
+
+            // Calcular luminosidad (0-255, donde >128 es claro)
+            const luminosity = (0.299 * r + 0.587 * g + 0.114 * b);
+
+            // Texto negro si fondo claro, blanco si fondo oscuro
+            const textColor = luminosity > 128 ? '#000000' : '#FFFFFF';
+
             item.innerHTML = `
-                <div class="error-number">${idx + 1}</div>
+                <div class="error-number" style="background-color: ${errorColor}; color: ${textColor};">${idx + 1}</div>
                 <div class="error-text">${err.mensaje}</div>
             `;
             item.onclick = () => AudioStudio.highlightError(idx);

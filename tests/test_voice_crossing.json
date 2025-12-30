@@ -1,0 +1,114 @@
+[
+  {
+    "id": "vc_001",
+    "name": "Cruce B-T: Bajo sobre Tenor",
+    "chord1": {
+      "B": "E3",
+      "T": "C3",
+      "A": "G3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "C3",
+      "T": "E3",
+      "A": "G3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "B",
+      "T"
+    ],
+    "description": "Bajo (E3) está por encima del Tenor (C3)"
+  },
+  {
+    "id": "vc_002",
+    "name": "Cruce T-A: Tenor sobre Alto",
+    "chord1": {
+      "B": "C3",
+      "T": "E4",
+      "A": "C4",
+      "S": "G4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "G2",
+      "T": "D3",
+      "A": "G3",
+      "S": "B3",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "T",
+      "A"
+    ],
+    "description": "Tenor (E4) está por encima del Alto (C4)"
+  },
+  {
+    "id": "vc_003",
+    "name": "Cruce A-S: Alto sobre Soprano",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "C5",
+      "S": "G4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "F2",
+      "T": "C3",
+      "A": "A3",
+      "S": "F4",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "A",
+      "S"
+    ],
+    "description": "Alto (C5) está por encima de la Soprano (G4)"
+  },
+  {
+    "id": "vc_004",
+    "name": "Sin cruces: Orden correcto",
+    "chord1": {
+      "B": "C3",
+      "T": "E3",
+      "A": "G3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "G2",
+      "T": "D3",
+      "A": "G3",
+      "S": "B3",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "description": "Orden correcto: B < T < A < S"
+  },
+  {
+    "id": "vc_005",
+    "name": "Unísono T-A (límite)",
+    "chord1": {
+      "B": "C3",
+      "T": "G3",
+      "A": "G3",
+      "S": "C4",
+      "key": "C major"
+    },
+    "chord2": {
+      "B": "F2",
+      "T": "A2",
+      "A": "C3",
+      "S": "F3",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "description": "Unísono NO es cruce (T.ps == A.ps, no T.ps > A.ps)"
+  }
+]

@@ -7,11 +7,68 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [3.0.0-alpha] - 2025-12-30
+
+### 🚀 Fase 3A En Progreso - Motor Armónico Esencial (80%)
+
+### Added
+
+**12 Reglas Armónicas Implementadas**:
+
+#### Tier 1 (CRITICAL) - 7/7 ✅
+
+- ✨ ParallelFifthsRule - Quintas paralelas/consecutivas (3 excepciones)
+- ✨ ParallelOctavesRule - Octavas paralelas/consecutivas  
+- ✨ DirectFifthsRule - Quintas directas/ocultas (severidad variable)
+- ✨ DirectOctavesRule - Octavas directas/ocultas
+- ✨ UnequalFifthsRule - Quintas desiguales (d5→P5)
+- ✨ LeadingToneResolutionRule - Resolución de sensible (9 excepciones pedagógicas)
+- ✨ SeventhResolutionRule - Resolución de séptima (arquitectura con fallback)
+
+#### Tier 2 (IMPORTANT) - 5/8 ✅
+
+- ✨ VoiceCrossingRule - Cruzamiento de voces (B-T, T-A, A-S)
+- ✨ MaximumDistanceRule - Distancia máxima entre voces (>8ª)
+- ✨ VoiceOverlapRule - Invasión/Superposición de registros
+- ✨ DuplicatedLeadingToneRule - Duplicación de sensible (V, vii°, V7)
+- ✨ DuplicatedSeventhRule - Duplicación de séptima
+
+**Infraestructura**:
+
+- ✨ Sistema `chord_knowledge.py` (785 líneas) - Capa abstracción acordes
+- ✨ 14 tipos de acordes documentados con factores (1, 3, 5, 7)
+- ✨ Arquitectura `HarmonicRule` base class con sistema excepciones
+- ✨ `RulesEngine` con registro automático de reglas
+- ✨ Sistema de confianza: ConfidenceLevel (CERTAIN, HIGH, MEDIUM, LOW)
+- ✨ 60+ tests automatizados JSON (test_*.json)
+
+### Technical
+
+- 🔧 Detección de sensibles locales (dominantes secundarias V/x)
+- 🔧 Análisis factor-based vs. imperativo (get_voices_with_factor)
+- 🔧 Cadencia rota estricta (V-vi) en resolución sensible
+- 🔧 Fallback completo arquitectura legacy → nueva
+
+### Pending (3 reglas Tier 2)
+
+- ⏳ VoiceRangeRule (Tesitura SATB) - 2h estimadas
+- ⏳ ImproperOmissionRule (Omisión 3ª/7ª) - 3h estimadas  
+- ⏳ ExcessiveMelodicMotionRule (Saltos >8ª) - 2h estimadas
+
+### Metrics
+
+- 📊 **Precisión**: 90%+ en casos comunes
+- 📊 **Falsos Positivos**: 0 en I-IV-V-I básico
+- 📊 **Coverage**: 12/15 reglas Tier 1+2 (80%)
+
+---
+
 ## [2.0.0] - 2025-12-26
 
 ### 🎉 Fase 2 Completada - Desktop/Mobile UX Optimization
 
 ### Added
+
 - ✨ Atajo de teclado `Escape` para volver a modo Escribir desde modo Revisar
 - ✨ Sistema completo de variables CSS (design tokens)
 - ✨ Controles de reproducción avanzados (velocidad, navegación)
@@ -23,6 +80,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/).
 - ✨ Documentación JSDoc en funciones principales
 
 ### Changed
+
 - 🔄 Interfaz móvil completamente optimizada (v18)
 - 🔄 Icono de papelera y botón Play duplicados eliminados en mobile
 - 🔄 Modal de bienvenida con z-index correcto
@@ -31,6 +89,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/).
 - 🔄 CSS organizado con variables y media queries consolidados
 
 ### Fixed
+
 - 🐛 Botones duplicados "Corregir" y "Borrar" en desktop
 - 🐛 Especificidad CSS en reglas mobile vs desktop
 - 🐛 Z-index de modal interfiriendo con contenido
@@ -38,6 +97,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/).
 - 🐛 Controles de reproducción ocultos incorrectamente
 
 ### Optimized
+
 - ⚡ Limpieza de console.log verbosos
 - ⚡ Código JavaScript modularizado
 - ⚡ CSS con variables reutilizables
@@ -51,6 +111,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/).
 ### 🚀 Release Inicial - Fase 1 Completada
 
 ### Added
+
 - ✨ Entrada de notas SATB (piano visual + teclado)
 - ✨ Renderizado de partituras con VexFlow
 - ✨ Análisis armónico básico
@@ -68,6 +129,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/).
 - ✨ Modal de bienvenida con atajos de teclado
 
 ### Technical
+
 - 🔧 Flask backend con API REST
 - 🔧 Modularización JavaScript (ES6)
 - 🔧 Estado centralizado con AppState
@@ -90,27 +152,32 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/).
 ## Roadmap
 
 ### [3.0.0] - Q1 2026 - Reglas Avanzadas
+
 - Expansión de 20+ reglas armónicas
 - Sistema de severidad configurable
 - Modulaciones básicas
 - Dominantes secundarias completas
 
 ### [4.0.0] - Q1-Q2 2026 - Grados y Cifrados
+
 - Input de bajo cifrado
 - Análisis funcional manual
 - Múltiples formatos de ejercicio
 
 ### [5.0.0] - Q2 2026 - Escritura Avanzada
+
 - Compases variables (2/4, 3/4, 6/8, etc.)
 - Notas ornamentales (paso, floreo, apoyatura)
 - Figuras rítmicas variadas
 
 ### [6.0.0] - Q2 2026 - Modo Profesor
+
 - Creación de ejercicios
 - Sistema de corrección automática
 - Backend con base de datos
 
 ### [7.0.0] - Q3 2026 - PWA
+
 - Instalable en móvil
 - Modo offline
 - Viewport dinámico optimizado

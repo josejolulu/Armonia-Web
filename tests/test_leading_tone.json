@@ -1,0 +1,122 @@
+[
+    {
+        "id": "lt_001",
+        "name": "Sensible en Soprano resuelve bien (V-I, Si->Do)",
+        "chord1": {
+            "S": "B4",
+            "A": "G4",
+            "T": "D4",
+            "B": "G2",
+            "root": "G",
+            "quality": "major"
+        },
+        "chord2": {
+            "S": "C5",
+            "A": "G4",
+            "T": "E4",
+            "B": "C3",
+            "root": "C",
+            "quality": "major"
+        },
+        "key": "C Major",
+        "expected": "OK"
+    },
+    {
+        "id": "lt_002",
+        "name": "Sensible en Soprano NO resuelve (V-I, Si->Re)",
+        "description": "Error crítico: La sensible en voz externa DEBE resolver",
+        "chord1": {
+            "S": "B4",
+            "A": "G4",
+            "T": "D4",
+            "B": "G2",
+            "root": "G",
+            "quality": "major"
+        },
+        "chord2": {
+            "S": "D5",
+            "A": "G4",
+            "T": "E4",
+            "B": "C3",
+            "root": "C",
+            "quality": "major"
+        },
+        "key": "C Major",
+        "expected": "ERROR",
+        "voices_affected": [
+            "S"
+        ]
+    },
+    {
+        "id": "lt_003",
+        "name": "Sensible en Tenor baja a 5ta (V-I, Si->Sol)",
+        "description": "Excepción permitida: Voz interior baja de 3ra a 5ta para completar acorde final",
+        "chord1": {
+            "S": "D5",
+            "A": "G4",
+            "T": "B3",
+            "B": "G3",
+            "root": "G",
+            "quality": "major"
+        },
+        "chord2": {
+            "S": "C5",
+            "A": "G4",
+            "T": "G3",
+            "B": "C3",
+            "root": "C",
+            "quality": "major"
+        },
+        "key": "C Major",
+        "expected": "OK"
+    },
+    {
+        "id": "lt_004",
+        "name": "Sensible NO resuelve en cadencia rota (V-vi)",
+        "description": "Estándar: La sensible DEBE subir a tónica en cadencia rota (duplicando la 3ª del vi). Fallo si no resuelve.",
+        "chord1": {
+            "S": "B4",
+            "A": "G4",
+            "T": "D4",
+            "B": "G3",
+            "root": "G",
+            "quality": "major"
+        },
+        "chord2": {
+            "S": "A4",
+            "A": "E4",
+            "T": "C4",
+            "B": "A3",
+            "root": "A",
+            "quality": "minor"
+        },
+        "key": "C Major",
+        "expected": "ERROR",
+        "voices_affected": [
+            "S"
+        ]
+    },
+    {
+        "id": "lt_005",
+        "name": "Sensible en III grado (no dominante)",
+        "description": "Si la nota sensible es parte de un iii, no funciona como sensible activa",
+        "chord1": {
+            "S": "B4",
+            "A": "G4",
+            "T": "E4",
+            "B": "E3",
+            "root": "E",
+            "quality": "minor"
+        },
+        "chord2": {
+            "S": "A4",
+            "A": "F4",
+            "T": "C4",
+            "B": "F3",
+            "root": "F",
+            "quality": "major"
+        },
+        "key": "C Major",
+        "expected": "OK"
+    }
+]

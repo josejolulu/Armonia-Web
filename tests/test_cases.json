@@ -1,0 +1,314 @@
+{
+    "test_parallel_fifths": [
+        {
+            "id": "pf_001",
+            "name": "Quintas paralelas S-A evidentes",
+            "description": "Caso básico: quintas consecutivas C-G y D-A entre Soprano y Alto",
+            "chord1": {
+                "S": "G4",
+                "A": "C4",
+                "T": "E3",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "chord2": {
+                "S": "A4",
+                "A": "D4",
+                "T": "F3",
+                "B": "D3",
+                "root": "D",
+                "quality": "minor",
+                "inversion": 0,
+                "degree_num": 2,
+                "function": "S"
+            },
+            "key": "C major",
+            "expected": "ERROR",
+            "confidence": 100,
+            "voices_affected": [
+                "S",
+                "A"
+            ]
+        },
+        {
+            "id": "pf_002",
+            "name": "Quintas en Válido de V-VII (excepción)",
+            "description": "Quintas entre V y VII son permitidas por misma función dominante",
+            "chord1": {
+                "S": "D5",
+                "A": "G4",
+                "T": "B3",
+                "B": "G3",
+                "root": "G",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 5,
+                "function": "D"
+            },
+            "chord2": {
+                "S": "D5",
+                "A": "G4",
+                "T": "B3",
+                "B": "B2",
+                "root": "B",
+                "quality": "diminished",
+                "inversion": 0,
+                "degree_num": 7,
+                "function": "D"
+            },
+            "key": "C major",
+            "expected": "OK",
+            "exception": "V_VII_pair"
+        },
+        {
+            "id": "pf_003",
+            "name": "Quinta solitaria S-B (permitido)",
+            "description": "Solo primera quinta (P19), segunda es tercera - no error",
+            "chord1": {
+                "S": "G5",
+                "A": "E4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "chord2": {
+                "S": "F5",
+                "A": "D4",
+                "T": "A3",
+                "B": "D3",
+                "root": "D",
+                "quality": "minor",
+                "inversion": 1,
+                "degree_num": 2,
+                "function": "S"
+            },
+            "key": "C major",
+            "expected": "OK",
+            "note": "Solo hay una quinta en chord1, no hay quintas paralelas"
+        },
+        {
+            "id": "pf_004",
+            "name": "Movimiento oblicuo (permitido)",
+            "description": "Una voz quieta, otra se mueve - no es error",
+            "chord1": {
+                "S": "G4",
+                "A": "E4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "chord2": {
+                "S": "F4",
+                "A": "C4",
+                "T": "A3",
+                "B": "F3",
+                "root": "F",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 4,
+                "function": "S"
+            },
+            "key": "C major",
+            "expected": "OK",
+            "note": "Movimiento oblicuo no produce quintas paralelas"
+        },
+        {
+            "id": "pf_005",
+            "name": "Progresión I-IV (sin quintas)",
+            "description": "Progresión normal sin quintas paralelas",
+            "chord1": {
+                "S": "G4",
+                "A": "E4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "chord2": {
+                "S": "F4",
+                "A": "C4",
+                "T": "A3",
+                "B": "F3",
+                "root": "F",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 4,
+                "function": "S"
+            },
+            "key": "C major",
+            "expected": "OK"
+        },
+        {
+            "id": "pf_006",
+            "name": "Quintas T-B (error)",
+            "description": "Quintas paralelas entre Tenor y Bajo",
+            "chord1": {
+                "S": "E4",
+                "A": "C4",
+                "T": "G3",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "chord2": {
+                "S": "F4",
+                "A": "D4",
+                "T": "A3",
+                "B": "D3",
+                "root": "D",
+                "quality": "minor",
+                "inversion": 0,
+                "degree_num": 2,
+                "function": "S"
+            },
+            "key": "C major",
+            "expected": "ERROR",
+            "confidence": 100,
+            "voices_affected": [
+                "T",
+                "B"
+            ]
+        },
+        {
+            "id": "pf_007",
+            "name": "Cambio de disposición (excepción)",
+            "description": "Mismo acorde, diferente voicing - permitido",
+            "chord1": {
+                "S": "E4",
+                "A": "C4",
+                "T": "G3",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "chord2": {
+                "S": "G4",
+                "A": "E4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "key": "C major",
+            "expected": "OK",
+            "exception": "voicing_change"
+        },
+        {
+            "id": "pf_008",
+            "name": "V7-I con conducción correcta",
+            "description": "Cadencia auténtica sin quintas paralelas",
+            "chord1": {
+                "S": "B4",
+                "A": "F4",
+                "T": "D4",
+                "B": "G3",
+                "root": "G",
+                "quality": "dominant-seventh",
+                "inversion": 0,
+                "degree_num": 5,
+                "function": "D"
+            },
+            "chord2": {
+                "S": "C5",
+                "A": "E4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "key": "C major",
+            "expected": "OK"
+        },
+        {
+            "id": "pf_009",
+            "name": "Quintas A-T (error)",
+            "description": "Quintas paralelas entre Alto y Tenor",
+            "chord1": {
+                "S": "E5",
+                "A": "G4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "chord2": {
+                "S": "F5",
+                "A": "A4",
+                "T": "D4",
+                "B": "D3",
+                "root": "D",
+                "quality": "minor",
+                "inversion": 0,
+                "degree_num": 2,
+                "function": "S"
+            },
+            "key": "C major",
+            "expected": "ERROR",
+            "confidence": 100,
+            "voices_affected": [
+                "A",
+                "T"
+            ]
+        },
+        {
+            "id": "pf_010",
+            "name": "VII-V (par inverso, excepción)",
+            "description": "VII a V también es excepción (par V-VII en cualquier orden)",
+            "chord1": {
+                "S": "F5",
+                "A": "B4",
+                "T": "D4",
+                "B": "B3",
+                "root": "B",
+                "quality": "diminished",
+                "inversion": 0,
+                "degree_num": 7,
+                "function": "D"
+            },
+            "chord2": {
+                "S": "D5",
+                "A": "B4",
+                "T": "G4",
+                "B": "G3",
+                "root": "G",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 5,
+                "function": "D"
+            },
+            "key": "C major",
+            "expected": "OK",
+            "exception": "V_VII_pair"
+        }
+    ]
+}

@@ -1,0 +1,30 @@
+[
+    {
+        "id": "lt_repro_001",
+        "name": "REPRO: V7 -> I (Si -> Re) Soprano [FALLO EN PROD]",
+        "description": "Reproducción exacta del caso de la captura. Soprano sube de Si4 a Re5 (3ra menor). DEBE FALLAR.",
+        "chord1": {
+            "B": "G2",
+            "T": "D3",
+            "A": "G4",
+            "S": "B4",
+            "root": "G",
+            "quality": "dominant",
+            "key": "C Major"
+        },
+        "chord2": {
+            "B": "C3",
+            "T": "E3",
+            "A": "G4",
+            "S": "D5",
+            "root": "C",
+            "quality": "major",
+            "key": "C Major"
+        },
+        "key": "C Major",
+        "expected": "ERROR",
+        "voices_affected": [
+            "S"
+        ]
+    }
+]

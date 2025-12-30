@@ -1,0 +1,102 @@
+[
+    {
+        "name": "ds_001_v7_seventh_duplicated_sa",
+        "description": "V7 (G-B-D-F) tiene F duplicado en Soprano y Alto - Error",
+        "chord1": {
+            "S": "F4",
+            "A": "F3",
+            "T": "D3",
+            "B": "G2",
+            "key": "C major"
+        },
+        "chord2": {
+            "S": "E4",
+            "A": "E3",
+            "T": "C3",
+            "B": "C2",
+            "key": "C major"
+        },
+        "should_have_error": true,
+        "error_type": "duplicated_seventh"
+    },
+    {
+        "name": "ds_002_v7_no_duplication",
+        "description": "V7 (G-B-D-F) sin séptima duplicada - OK",
+        "chord1": {
+            "S": "D4",
+            "A": "F3",
+            "T": "B3",
+            "B": "G2",
+            "key": "C major"
+        },
+        "chord2": {
+            "S": "C4",
+            "A": "E3",
+            "T": "C3",
+            "B": "C2",
+            "key": "C major"
+        },
+        "should_have_error": false,
+        "error_type": "duplicated_seventh"
+    },
+    {
+        "name": "ds_003_ii7_seventh_duplicated",
+        "description": "ii7 (D-F-A-C) FUNDAMENTAL con C duplicado en S y A - Error",
+        "chord1": {
+            "S": "C4",
+            "A": "C3",
+            "T": "F3",
+            "B": "D2",
+            "key": "C major"
+        },
+        "chord2": {
+            "S": "B3",
+            "A": "D3",
+            "T": "G3",
+            "B": "G2",
+            "key": "C major"
+        },
+        "should_have_error": true,
+        "error_type": "duplicated_seventh"
+    },
+    {
+        "name": "ds_004_v_triad_no_seventh",
+        "description": "V (G-B-D) tríada sin 7ª - NO aplica",
+        "chord1": {
+            "S": "B4",
+            "A": "D4",
+            "T": "G3",
+            "B": "G2",
+            "key": "C major"
+        },
+        "chord2": {
+            "S": "C4",
+            "A": "E3",
+            "T": "C3",
+            "B": "C2",
+            "key": "C major"
+        },
+        "should_have_error": false,
+        "error_type": "duplicated_seventh"
+    },
+    {
+        "name": "ds_005_i7_seventh_tripled",
+        "description": "I7 (C-E-G-B) tiene B triplicado en S, A, T - Error grave",
+        "chord1": {
+            "S": "B4",
+            "A": "B3",
+            "T": "B3",
+            "B": "C2",
+            "key": "C major"
+        },
+        "chord2": {
+            "S": "C4",
+            "A": "C3",
+            "T": "E3",
+            "B": "C2",
+            "key": "C major"
+        },
+        "should_have_error": true,
+        "error_type": "duplicated_seventh"
+    }
+]

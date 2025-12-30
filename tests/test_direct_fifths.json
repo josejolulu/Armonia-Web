@@ -1,0 +1,225 @@
+{
+    "test_suite": "Direct Fifths Rule",
+    "description": "Test cases para quintas directas (ocultas) - CORREGIDOS",
+    "tests": [
+        {
+            "id": "df_001",
+            "name": "Directas B-S evidentes",
+            "description": "Bajo y Soprano ambas suben, llegan a P5, soprano salta",
+            "chord1": {
+                "S": "C4",
+                "A": "G3",
+                "T": "E3",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 1,
+                "function": "T"
+            },
+            "chord2": {
+                "S": "B4",
+                "A": "D4",
+                "T": "G3",
+                "B": "E4",
+                "root": "G",
+                "quality": "major",
+                "inversion": 0,
+                "degree_num": 5,
+                "function": "D"
+            },
+            "expected": "ERROR",
+            "voices_affected": [
+                "B",
+                "S"
+            ],
+            "confidence": 100,
+            "notes": "Bajo E4 - Soprano B4 = P5. Ambos suben. Soprano salta 11 semitonos."
+        },
+        {
+            "id": "df_002",
+            "name": "B-S soprano por grado (permitido)",
+            "description": "Soprano mueve por grado conjunto, no salto",
+            "chord1": {
+                "S": "C5",
+                "A": "G4",
+                "T": "E4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0
+            },
+            "chord2": {
+                "S": "D5",
+                "A": "A4",
+                "T": "F#4",
+                "B": "D3",
+                "root": "D",
+                "quality": "major",
+                "inversion": 0
+            },
+            "expected": "OK",
+            "notes": "Soprano mueve 2 semitonos (grado conjunto), permitido aunque lleguen a P5"
+        },
+        {
+            "id": "df_003",
+            "name": "Directas B-A evidentes",
+            "description": "Bajo y Alto suben, llegan a P5, alto salta",
+            "chord1": {
+                "S": "E4",
+                "A": "C3",
+                "T": "G3",
+                "B": "C2",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0
+            },
+            "chord2": {
+                "S": "D4",
+                "A": "A3",
+                "T": "F#3",
+                "B": "D2",
+                "root": "D",
+                "quality": "major",
+                "inversion": 0
+            },
+            "expected": "ERROR",
+            "voices_affected": [
+                "B",
+                "A"
+            ],
+            "confidence": 90,
+            "notes": "Bajo D2 - Alto A3 = P5. Ambos suben. Alto salta 8 semitonos."
+        },
+        {
+            "id": "df_004",
+            "name": "Movimiento contrario (permitido)",
+            "description": "Llegan a P5 pero en sentidos opuestos",
+            "chord1": {
+                "S": "G4",
+                "A": "E4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0
+            },
+            "chord2": {
+                "S": "F4",
+                "A": "C4",
+                "T": "A3",
+                "B": "F2",
+                "root": "F",
+                "quality": "major",
+                "inversion": 0
+            },
+            "expected": "OK",
+            "notes": "Soprano baja, Bajo baja → movement→ permitido"
+        },
+        {
+            "id": "df_005",
+            "name": "Movimiento oblicuo (permitido)",
+            "description": "Una voz quieta",
+            "chord1": {
+                "S": "C5",
+                "A": "G4",
+                "T": "E4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0
+            },
+            "chord2": {
+                "S": "D5",
+                "A": "G4",
+                "T": "F4",
+                "B": "D3",
+                "root": "D",
+                "quality": "major",
+                "inversion": 0
+            },
+            "expected": "OK",
+            "notes": "Alto quieto → oblicuo, OK"
+        },
+        {
+            "id": "df_006",
+            "name": "Ya había P5 (paralelas)",
+            "description": "P5→P5, no directas",
+            "chord1": {
+                "S": "G4",
+                "A": "C4",
+                "T": "E3",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0
+            },
+            "chord2": {
+                "S": "A4",
+                "A": "D4",
+                "T": "F#3",
+                "B": "D3",
+                "root": "D",
+                "quality": "major",
+                "inversion": 0
+            },
+            "expected": "OK_FOR_DF",
+            "notes": "DirectFifthsRule NO debe detectar (ya había P5)"
+        },
+        {
+            "id": "df_007",
+            "name": "Voces internas A-T",
+            "description": "Directas entre alto y tenor",
+            "chord1": {
+                "S": "E5",
+                "A": "C4",
+                "T": "E3",
+                "B": "C2",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0
+            },
+            "chord2": {
+                "S": "D5",
+                "A": "G3",
+                "T": "D3",
+                "B": "D2",
+                "root": "D",
+                "quality": "minor",
+                "inversion": 0
+            },
+            "expected": "ERROR",
+            "voices_affected": [
+                "T",
+                "A"
+            ],
+            "confidence": 70,
+            "notes": "Tenor D3 - Alto G3 = P5. Alto salta 7 semitonos."
+        },
+        {
+            "id": "df_008",
+            "name": "No llega a P5",
+            "description": "No forman quinta",
+            "chord1": {
+                "S": "C5",
+                "A": "G4",
+                "T": "E4",
+                "B": "C3",
+                "root": "C",
+                "quality": "major",
+                "inversion": 0
+            },
+            "chord2": {
+                "S": "F5",
+                "A": "C5",
+                "T": "A4",
+                "B": "F3",
+                "root": "F",
+                "quality": "major",
+                "inversion": 0
+            },
+            "expected": "OK",
+            "notes": "No llegan a P5, permitido"
+        }
+    ]
+}

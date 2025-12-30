@@ -1,0 +1,55 @@
+[
+    {
+        "id": "lt_rob_001",
+        "name": "Robustez: V7/V mal etiquetado como 'augmented' (Fallo resolución)",
+        "description": "El backend recibe 'quality': 'augmented' pero las notas son de Dominante (D-F#-A-C). F# es M3. Debe detectar sensible.",
+        "chord1": {
+            "B": "D3",
+            "T": "A3",
+            "A": "C4",
+            "S": "F#4",
+            "root": "D",
+            "quality": "augmented",
+            "key": "C Major"
+        },
+        "chord2": {
+            "B": "G2",
+            "T": "B2",
+            "A": "d3",
+            "S": "A4",
+            "root": "G",
+            "quality": "major",
+            "key": "C Major"
+        },
+        "key": "C Major",
+        "expected": "ERROR",
+        "voices_affected": [
+            "S"
+        ]
+    },
+    {
+        "id": "lt_rob_002",
+        "name": "Robustez: V7/V mal etiquetado como 'unknown' (Resolución Correcta)",
+        "description": "Quality unknown. F# (M3) resuelve a G (1). Debe pasar.",
+        "chord1": {
+            "B": "D3",
+            "T": "A3",
+            "A": "C4",
+            "S": "F#4",
+            "root": "D",
+            "quality": "unknown",
+            "key": "C Major"
+        },
+        "chord2": {
+            "B": "G2",
+            "T": "B2",
+            "A": "d3",
+            "S": "G4",
+            "root": "G",
+            "quality": "major",
+            "key": "C Major"
+        },
+        "key": "C Major",
+        "expected": "OK"
+    }
+]

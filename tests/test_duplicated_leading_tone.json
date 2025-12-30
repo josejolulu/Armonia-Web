@@ -1,0 +1,125 @@
+[
+  {
+    "id": "dlt_001",
+    "name": "V con sensible duplicada S-T",
+    "chord1": {
+      "S": "B4",
+      "A": "D4",
+      "T": "B3",
+      "B": "G3",
+      "root": "G",
+      "quality": "major",
+      "key": "C major"
+    },
+    "chord2": {
+      "S": "C5",
+      "A": "E4",
+      "T": "C4",
+      "B": "C3",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "S",
+      "T"
+    ],
+    "description": "V (G Mayor) tiene Si duplicado en Soprano y Tenor"
+  },
+  {
+    "id": "dlt_002",
+    "name": "V sin duplicación - OK",
+    "chord1": {
+      "S": "D4",
+      "A": "B3",
+      "T": "G3",
+      "B": "G2",
+      "root": "G",
+      "quality": "major",
+      "key": "C major"
+    },
+    "chord2": {
+      "S": "C4",
+      "A": "C4",
+      "T": "E3",
+      "B": "C3",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "description": "V sin sensible duplicada (Si solo en Alto)"
+  },
+  {
+    "id": "dlt_003",
+    "name": "vii° con sensible duplicada T-B",
+    "chord1": {
+      "S": "F4",
+      "A": "D4",
+      "T": "B3",
+      "B": "B2",
+      "root": "B",
+      "quality": "diminished",
+      "key": "C major"
+    },
+    "chord2": {
+      "S": "E4",
+      "A": "C4",
+      "T": "C4",
+      "B": "C3",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "T",
+      "B"
+    ],
+    "description": "vii° (Si dim) tiene Si duplicado en Tenor y Bajo"
+  },
+  {
+    "id": "dlt_004",
+    "name": "I con B duplicado - NO es error",
+    "chord1": {
+      "S": "E4",
+      "A": "C4",
+      "T": "G3",
+      "B": "C3",
+      "root": "C",
+      "quality": "major",
+      "key": "C major"
+    },
+    "chord2": {
+      "S": "D4",
+      "A": "B3",
+      "T": "G3",
+      "B": "G2",
+      "key": "C major"
+    },
+    "expected": "OK",
+    "description": "Acorde I no es dominante, no tiene sensible activa"
+  },
+  {
+    "id": "dlt_005",
+    "name": "V7 con sensible triplicada",
+    "chord1": {
+      "S": "B4",
+      "A": "B3",
+      "T": "B3",
+      "B": "G2",
+      "root": "G",
+      "quality": "dominant_seventh",
+      "key": "C major"
+    },
+    "chord2": {
+      "S": "C5",
+      "A": "C4",
+      "T": "C4",
+      "B": "C3",
+      "key": "C major"
+    },
+    "expected": "ERROR",
+    "voices_affected": [
+      "S",
+      "A",
+      "T"
+    ],
+    "description": "V7 con Si triplicado en S, A y T (error grave)"
+  }
+]

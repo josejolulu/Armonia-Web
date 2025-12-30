@@ -1,0 +1,44 @@
+# Armonía-Web - Dependencias Python
+# Última actualización: 30 Diciembre 2025
+# Python: 3.9+
+
+# Framework Web
+Flask==3.1.2
+Werkzeug==3.1.3
+
+# Análisis Musical
+music21==9.9.1  # Biblioteca de análisis musical (instalado)
+
+# Servidor WSGI (Producción)
+gunicorn==23.0.0  # Para Render deployment (FASE 3B)
+
+# Utilidades
+python-dotenv==1.0.1
+
+# ============================================
+# NOTAS DE VERSIONES
+# ============================================
+# 
+# Flask 3.1.2 (Agosto 2025):
+# - Requiere Python 3.9+
+# - Mejoras en seguridad y rendimiento
+# - Compatible con Werkzeug 3.x
+#
+# music21 9.9.1 (Octubre 2025):
+# - Última versión estable
+# - Planeado para FASE 5 (Análisis avanzado)
+# - NO instalado por defecto (comentado)
+#
+# gunicorn 23.0.0:
+# - Servidor WSGI para producción
+# - Requerido para Railway.app deployment (FASE 3B)
+#
+# ============================================
+# DEPENDENCIAS FRONTEND (CDN)
+# ============================================
+#
+# Actualizadas en templates/index.html:
+# - VexFlow: 5.0.0 (Marzo 2025) - Notación musical
+# - Tone.js: 14.8.49 (Abril 2025) - Síntesis audio
+#
+# ============================================

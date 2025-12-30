@@ -1,0 +1,51 @@
+[
+    {
+        "id": "lt_sec_001",
+        "name": "V7/V -> V: Sensible secundaria (Fa#) sube a Sol",
+        "description": "D7 (V/V) -> G (V). F# (3ra de D7) es sensible de G. Debe subir a G.",
+        "chord1": {
+            "S": "A4",
+            "A": "F#4",
+            "T": "D4",
+            "B": "D3",
+            "root": "D",
+            "quality": "dominant"
+        },
+        "chord2": {
+            "S": "B4",
+            "A": "G4",
+            "T": "D4",
+            "B": "G2",
+            "root": "G",
+            "quality": "major"
+        },
+        "key": "C Major",
+        "expected": "OK"
+    },
+    {
+        "id": "lt_sec_002",
+        "name": "V7/V -> V: Sensible secundaria (Fa#) NO resuelve (Fa#->La)",
+        "description": "Fallo: F# debe ir a G.",
+        "chord1": {
+            "S": "A4",
+            "A": "F#4",
+            "T": "D4",
+            "B": "D3",
+            "root": "D",
+            "quality": "dominant"
+        },
+        "chord2": {
+            "S": "B4",
+            "A": "A4",
+            "T": "D4",
+            "B": "G2",
+            "root": "G",
+            "quality": "major"
+        },
+        "key": "C Major",
+        "expected": "ERROR",
+        "voices_affected": [
+            "A"
+        ]
+    }
+]

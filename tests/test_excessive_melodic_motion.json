@@ -1,0 +1,161 @@
+{
+    "name": "ExcessiveMelodicMotionRule Tests",
+    "description": "Tests para verificar detección de saltos melódicos mayores a una octava",
+    "rule": "excessive_melodic_motion",
+    "test_cases": [
+        {
+            "id": "excessive_9th_leap_soprano",
+            "description": "Salto de 9ª mayor en Soprano (14 semitonos) - Debe detectar ERROR",
+            "expected": "error",
+            "chord1": {
+                "S": "C4",
+                "A": "E4",
+                "T": "G3",
+                "B": "C3",
+                "root": "C",
+                "degree": "I"
+            },
+            "chord2": {
+                "S": "D5",
+                "A": "F4",
+                "T": "A3",
+                "B": "D3",
+                "root": "D",
+                "degree": "ii"
+            },
+            "notes": "C4 → D5 = 14 semitonos > 12, debe detectar error en Soprano"
+        },
+        {
+            "id": "excessive_10th_leap_bass",
+            "description": "Salto de 10ª en Bajo (16 semitonos) - Debe detectar ERROR",
+            "expected": "error",
+            "chord1": {
+                "S": "G4",
+                "A": "E4",
+                "T": "C4",
+                "B": "C2",
+                "root": "C",
+                "degree": "I"
+            },
+            "chord2": {
+                "S": "A4",
+                "A": "F4",
+                "T": "D4",
+                "B": "E3",
+                "root": "F",
+                "degree": "IV"
+            },
+            "notes": "C2 → E3 = 16 semitonos > 12, debe detectar error en Bajo"
+        },
+        {
+            "id": "octave_leap_exactly_12",
+            "description": "Salto de 8ª justa en Tenor (12 semitonos) - NO debe detectar error",
+            "expected": "ok",
+            "chord1": {
+                "S": "G4",
+                "A": "E4",
+                "T": "C3",
+                "B": "C2",
+                "root": "C",
+                "degree": "I"
+            },
+            "chord2": {
+                "S": "A4",
+                "A": "F4",
+                "T": "C4",
+                "B": "F2",
+                "root": "F",
+                "degree": "IV"
+            },
+            "notes": "C3 → C4 = 12 semitonos exactamente, NO es error (límite permitido)"
+        },
+        {
+            "id": "seventh_leap_ok",
+            "description": "Salto de 7ª en Alto (11 semitonos) - NO debe detectar error",
+            "expected": "ok",
+            "chord1": {
+                "S": "G4",
+                "A": "C4",
+                "T": "E3",
+                "B": "C3",
+                "root": "C",
+                "degree": "I"
+            },
+            "chord2": {
+                "S": "A4",
+                "A": "B4",
+                "T": "F3",
+                "B": "D3",
+                "root": "D",
+                "degree": "ii"
+            },
+            "notes": "C4 → B4 = 11 semitonos, permitido (< 12)"
+        },
+        {
+            "id": "stepwise_motion_ok",
+            "description": "Movimiento por grados conjuntos - NO debe detectar error",
+            "expected": "ok",
+            "chord1": {
+                "S": "G4",
+                "A": "E4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "degree": "I"
+            },
+            "chord2": {
+                "S": "A4",
+                "A": "F4",
+                "T": "D4",
+                "B": "D3",
+                "root": "D",
+                "degree": "ii"
+            },
+            "notes": "Todas las voces se mueven por grado conjunto (2 semitonos máx)"
+        },
+        {
+            "id": "static_voice_ok",
+            "description": "Voz estática (sin movimiento) - NO debe detectar error",
+            "expected": "ok",
+            "chord1": {
+                "S": "G4",
+                "A": "E4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "degree": "I"
+            },
+            "chord2": {
+                "S": "G4",
+                "A": "E4",
+                "T": "C4",
+                "B": "C3",
+                "root": "C",
+                "degree": "I"
+            },
+            "notes": "Mismo acorde, voces estáticas, movimiento 0"
+        },
+        {
+            "id": "multiple_excessive_leaps",
+            "description": "Múltiples saltos excesivos (Soprano y Bajo) - Debe detectar ERROR",
+            "expected": "error",
+            "chord1": {
+                "S": "C4",
+                "A": "E4",
+                "T": "G3",
+                "B": "C2",
+                "root": "C",
+                "degree": "I"
+            },
+            "chord2": {
+                "S": "E5",
+                "A": "F4",
+                "T": "A3",
+                "B": "F3",
+                "root": "F",
+                "degree": "IV"
+            },
+            "notes": "C4 → E5 = 16 semitonos (Soprano), C2 → F3 = 17 semitonos (Bajo)"
+        }
+    ]
+}

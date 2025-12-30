@@ -1,0 +1,123 @@
+[
+    {
+        "id": "sev_001",
+        "name": "V7-I: Séptima resuelve bien (Fa->Mi)",
+        "description": "Resolución estándar descendente por semitono",
+        "chord1": {
+            "S": "F5",
+            "A": "D5",
+            "T": "B4",
+            "B": "G3",
+            "root": "G",
+            "quality": "dominant"
+        },
+        "chord2": {
+            "S": "E5",
+            "A": "C5",
+            "T": "G4",
+            "B": "C3",
+            "root": "C",
+            "quality": "major"
+        },
+        "key": "C Major",
+        "expected": "OK"
+    },
+    {
+        "id": "sev_002",
+        "name": "V7-I: Séptima sube (Fa->Sol)",
+        "description": "Error crítico: La séptima debe bajar",
+        "chord1": {
+            "S": "F5",
+            "A": "D5",
+            "T": "B4",
+            "B": "G3",
+            "root": "G",
+            "quality": "dominant"
+        },
+        "chord2": {
+            "S": "G5",
+            "A": "C5",
+            "T": "E4",
+            "B": "C3",
+            "root": "C",
+            "quality": "major"
+        },
+        "key": "C Major",
+        "expected": "ERROR",
+        "voices_affected": [
+            "S"
+        ]
+    },
+    {
+        "id": "sev_003",
+        "name": "V7-I: Séptima salta (Fa->Do)",
+        "description": "Error crítico: Salto no permitido en resolución",
+        "chord1": {
+            "S": "F5",
+            "A": "D5",
+            "T": "B4",
+            "B": "G3",
+            "root": "G",
+            "quality": "dominant"
+        },
+        "chord2": {
+            "S": "C5",
+            "A": "G4",
+            "T": "E4",
+            "B": "C3",
+            "root": "C",
+            "quality": "major"
+        },
+        "key": "C Major",
+        "expected": "ERROR",
+        "voices_affected": [
+            "S"
+        ]
+    },
+    {
+        "id": "sev_004",
+        "name": "V7-V7: Cambio de disposición (Fa->Re)",
+        "description": "Excepción: Mismo acorde permite movimiento libre",
+        "chord1": {
+            "S": "F5",
+            "A": "D5",
+            "T": "B4",
+            "B": "G3",
+            "root": "G",
+            "quality": "dominant"
+        },
+        "chord2": {
+            "S": "D5",
+            "A": "B4",
+            "T": "F4",
+            "B": "G3",
+            "root": "G",
+            "quality": "dominant"
+        },
+        "key": "C Major",
+        "expected": "OK"
+    },
+    {
+        "id": "sev_005",
+        "name": "vii°7-i: Séptima disminuida resuelve (Lab->Sol)",
+        "description": "C menor. Bdim7 (B-D-F-Ab). Ab->G (-1 semitono)",
+        "chord1": {
+            "S": "Ab4",
+            "A": "F4",
+            "T": "D4",
+            "B": "B2",
+            "root": "B",
+            "quality": "dim7"
+        },
+        "chord2": {
+            "S": "G4",
+            "A": "Eb4",
+            "T": "C4",
+            "B": "C3",
+            "root": "C",
+            "quality": "minor"
+        },
+        "key": "C Minor",
+        "expected": "OK"
+    }
+]
