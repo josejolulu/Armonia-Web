@@ -535,6 +535,52 @@ class Chord:
         
         return []
     
+    def get_intervals_from_root(self) -> List[int]:
+        """
+        Retorna intervalos en semitonos desde la fundamental.
+        
+        Usado para detectar acordes cromáticos como 6ª Aumentada
+        que tienen intervalos característicos (ej: 10 semitonos = 6ª Aug).
+        
+        Returns:
+            Lista de intervalos únicos en semitonos [0, 4, 7, 10]
+            Ejemplo: 6ª Aug Alemana: [0, 4, 6, 10]
+                     (root, 3ª Mayor, 4ª Aug, 6ª Aug)
+        
+        Example:
+            >>> chord = Chord(root='Ab', notes=['Ab3', 'C4', 'Eb4', 'Gb4'])
+            >>> chord.get_intervals_from_root()
+            [0, 4, 7, 10]  # Ab-C-Eb-Gb
+        """
+        if not self.root or not self.notes:
+            return []
+        
+        try:
+            from music21 import interval
+            
+            # Encontrar la nota fundamental en la lista de notas
+            root_pitch = next((n for n in self.notes if n.name == self.root.name), None)
+            if not root_pitch:
+                return []
+            
+            intervals_st = []
+            for note in self.notes:
+                if note == root_pitch:
+                    intervals_st.append(0)  # La raíz misma
+                else:
+                    intv = interval.Interval(root_pitch, note)
+                    # Normalizar a una octava (0-11 semitonos)
+                    semitones = intv.semitones % 12
+                    intervals_st.append(semitones)
+            
+            # Eliminar duplicados y ordenar
+            return sorted(set(intervals_st))
+            
+        except Exception as e:
+            logger.debug(f"Error calculando intervalos: {e}")
+            return []
+
+    
     def get_definition(self) -> Optional[Dict]:
         """Retorna la definición completa del tipo de acorde."""
         if self.chord_type and self.chord_type in CHORD_DEFINITIONS:

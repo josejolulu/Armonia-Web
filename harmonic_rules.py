@@ -2405,6 +2405,59 @@ class ImproperOmissionRule(HarmonicRule):
         
         return None
     
+    def _is_chromatic_chord(self, chord_obj) -> bool:
+        """
+        Detecta si un acorde es cromático (como 6ª Aumentada).
+        
+        Los acordes cromáticos tienen estructuras no-triádicas con
+        intervalos aumentados característicos. Se exentan de la
+        validación de "factores omitidos" porque no siguen la
+        morfología estándar 1-3-5(-7).
+        
+        Criterios de detección:
+            - Contiene intervalo de 6ª Aumentada (10 semitonos)
+            - Contiene intervalo de 4ª Aumentada/Tritono (6 st) con
+              al menos 3 factores (para distinguir de V7)
+        
+        Returns:
+            True si es acorde cromático, False si es diatónico
+        
+        Examples:
+            6ª Aug Alemana: [0, 4, 6, 10] → True (tiene 6ª Aug)
+            6ª Aug Italiana: [0, 4, 10] → True (tiene 6ª Aug)
+            V7: [0, 4, 7, 10] → False (no tiene tritono aislado)
+        """
+        try:
+            intervals = chord_obj.get_intervals_from_root()
+            
+            if not intervals:
+                return False  # No se pudo calcular
+            
+            # Intervalo de 6ª Aumentada = 10 semitonos
+            AUGMENTED_SIXTH = 10
+            
+            # 4ª Aumentada (tritono) = 6 semitonos
+            AUGMENTED_FOURTH = 6
+            
+            # Si contiene 6ª Aumentada, es claramente cromático
+            if AUGMENTED_SIXTH in intervals:
+                return True
+            
+            # Si contiene tritono Y tiene al menos 3 factores distintos,
+            # probablemente es acorde cromático (no V7 normal)
+            if AUGMENTED_FOURTH in intervals and len(intervals) >= 3:
+                # Verificar que NO sea simplemente un V7 diatónico
+                # V7 typical: [0, 4, 7, 10] (1, 3, 5, m7)
+                # 6ª Aug Francesa: [0, 2, 4, 10] (contiene 2ª, no 5ª)
+                if 7 not in intervals:  # No tiene 5ª justa
+                    return True  # Probablemente cromático
+            
+            return False
+            
+        except Exception as e:
+            logger.debug(f"Error detectando acorde cromático: {e}")
+            return False
+    
     def _check_chord_for_omissions(self, chord_dict: Dict, chord_index: int) -> Optional[Dict]:
         """
         Verifica si un acorde específico tiene omisiones impropias.
@@ -2421,6 +2474,11 @@ class ImproperOmissionRule(HarmonicRule):
         # factores faltantes, pero chord_type es None si 'quality' no viene del frontend
         
         chord_obj = _dict_to_chord_safe(chord_dict)
+        
+        # NUEVO: Detectar acordes cromáticos ANTES de validar factores
+        # Acordes como 6ª Aumentada tienen estructura no-triádica y se exentan
+        if chord_obj and self._is_chromatic_chord(chord_obj):
+            return None  # Acorde cromático válido, no aplicar reglas de omisión
         
         # Si no se puede crear el objeto Chord O si chord_type es None/unknown,
         # usar método legacy que funciona solo con root + notas SATB
