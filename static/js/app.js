@@ -263,8 +263,10 @@ const AudioStudio = {
         if (e.key === 'ArrowRight') this.moveCursor(1);
         if (e.key === 'Backspace' || e.key === 'Delete') this.addNote(null);
         if (e.key === 'Enter') this.analyzePartiture();
-        // Escape: cambiar a modo Escribir
+        // Escape: cambiar a modo Escribir (siempre)
         if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
             this.setAppMode('write');
         }
     },
