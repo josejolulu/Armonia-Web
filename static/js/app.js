@@ -779,7 +779,7 @@ const AudioStudio = {
         try {
             document.getElementById('lienzo-partitura').innerHTML = '';
 
-            const VF = Vex.Flow;
+            const VF = VexFlow;
             const vf = new VF.Factory({
                 renderer: {
                     elementId: 'lienzo-partitura',
@@ -875,7 +875,7 @@ const AudioStudio = {
             if ((offset + i) === this.state.cursorIndex) {
                 n.setStyle({ fillStyle: "#546de5", strokeStyle: "#546de5" });
                 if (voice === 'S') {
-                    const VF = Vex.Flow;
+                    const VF = VexFlow;
                     if (VF.Annotation) {
                         n.addModifier(new VF.Annotation("▼").setFont("Arial", 20, 3).setVerticalJustification(1));
                     }
