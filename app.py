@@ -220,33 +220,19 @@ def analizar_partitura():
         if not datos:
             return jsonify({'errores': [], 'mensaje': 'Error: datos vacíos'}), 400
         
-        tonalidad_str = datos.get('tonalidad', 'Do M')
-        voces = datos.get('voces', {})
-        compas = datos.get('compas', '4/4')
+        partitura = datos.get('partitura', [])
+        tonalidad = datos.get('tonalidad', {'tonica': 'C', 'modo': 'major'})
         
-        if not voces:
-            return jsonify({'errores': [], 'mensaje': 'Error: no hay voces'}), 400
+        # Inicializar/actualizar el Cerebro Tonal con la tonalidad
+        cerebro_tonal = crear_cerebro_tonal(tonalidad['tonica'], tonalidad['modo'])
+        logger.info(f"Analizando en tonalidad: {tonalidad['tonica']} {tonalidad['modo']}")
         
-        # Parsear tonalidad
-        try:
-            partes = tonalidad_str.split()
-            if len(partes) != 2:
-                raise ValueError("Formato incorrecto")
-            nota, modo_letra = partes
-            modo = 'major' if modo_letra.upper() == 'M' else 'minor'
-        except:
-            return jsonify({'errores': [], 'mensaje': f'Tonalidad inválida: {tonalidad_str}'}), 400
-        
-        # Crear/actualizar CerebroTonal y RulesEngine
-        cerebro_tonal = crear_cerebro_tonal(nota, modo)
-        logger.info(f"Analizando en tonalidad: {nota} {modo}")
-        
+        # Inicializar motor de reglas armónicas
         global harmonic_engine
-        harmonic_engine = RulesEngine(key=nota, mode=modo)
+        harmonic_engine = RulesEngine(key=tonalidad['tonica'], mode=tonalidad['modo'])
         logger.info(f"Motor de reglas armónicas inicializado")
         
         # Validar formato de partitura
-        partitura = datos.get('partitura', []) # Assuming 'partitura' is still expected
         if not isinstance(partitura, list) or len(partitura) == 0:
             return jsonify({'errores': [], 'mensaje': 'Error: partitura inválida'}), 400
         
