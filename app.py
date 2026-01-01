@@ -166,6 +166,7 @@ def _analizar_conduccion_voces(acorde_act, acorde_sig, n_compas, idx_tiempo_actu
                 'quality': analisis_actual.get('tipo'),      # Calidad (ej: 'major', 'minor')
                 'inversion': analisis_actual.get('inversion'),  # Estado (0, 1, 2)
                 'degree_num': analisis_actual.get('grado_num'),  # Número (1-7)
+                'tipo_especial': analisis_actual.get('tipo_especial'),  # CRÍTICO BUG #1: +6al, +6it, +6fr, N
                 'key': key_str  # AÑADIDO: Key para LeadingToneResolutionRule
             })
         else:
@@ -179,6 +180,7 @@ def _analizar_conduccion_voces(acorde_act, acorde_sig, n_compas, idx_tiempo_actu
                 'quality': analisis_siguiente.get('tipo'),
                 'inversion': analisis_siguiente.get('inversion'),
                 'degree_num': analisis_siguiente.get('grado_num'),
+                'tipo_especial': analisis_siguiente.get('tipo_especial'),  # CRÍTICO BUG #1
                 'key': key_str  # AÑADIDO: Key para LeadingToneResolutionRule
             })
         else:

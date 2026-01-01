@@ -7,6 +7,40 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v1.3.0] - 2026-01-01
+
+### 🐛 Bug Fixes
+
+- **CRÍTICO**: Corregido falso positivo en `ImproperOmissionRule` con Sextas Aumentadas Alemanas e Italien (#BUG-001)
+  - ✅ Añadida doble cláusula de guarda en `_check_chord_for_omissions()` (harmonic_rules.py)
+  - ✅ Mejorada validación de `chord_obj.root` en `_is_chromatic_chord()` para manejo robusto de `None`
+  - ✅ Corregida transmisión de campo crítico `tipo_especial` en `app.py` líneas 169 y 181
+  - ✅ Tests: 3/3 exitosos (6ª Alemana, Italiana, Francesa sin regresiones)
+  - ✅ Verificado en navegador: Bug eliminado completamente
+  
+### ✨ Improvements
+
+- **Detección de acordes cromáticos mejorada**: Sistema robusto de doble validación
+  - Cláusula de guarda #1: Verificación de `tipo_especial` pre-identificado por análisis funcional
+  - Cláusula de guarda #2: Análisis de intervalos característicos (6ª Aug = 10 semitonos)
+- **Logging mejorado**: Mensajes de debug para facilitar troubleshooting de acordes especiales
+- **Validación defensiva**: Checks explícitos de atributos antes de acceso para evitar `AttributeError`
+
+### 📝 Documentation
+
+- Generados 10+ documentos técnicos para análisis con NotebookLM (~7000 líneas documentadas)
+- [Walkthrough completo](file:///Users/joseluissanchez/.gemini/antigravity/brain/53640918-cdb4-4edd-92d0-13c7bf89d17f/BUG1_RESOLUCION_FINAL.md) de resolución del Bug #1
+- Archivos SOURCE_*.md con código fuente numerado para debugging asistido por IA
+- Índice maestro consolidado de documentación técnica
+
+### 🧪 Testing
+
+- Suite de tests ejecutada: 7/10 pasando (sin regresiones del Bug #1)
+- Tests específicos Bug #1: 3/3 exitosos
+- Verificación manual en navegador: ✅ Confirmado
+
+---
+
 ## [3.0.0-alpha] - 2025-12-30
 
 ### 🚀 Fase 3A En Progreso - Motor Armónico Esencial (80%)

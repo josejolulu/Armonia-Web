@@ -2428,6 +2428,17 @@ class ImproperOmissionRule(HarmonicRule):
             V7: [0, 4, 7, 10] → False (no tiene tritono aislado)
         """
         try:
+            # CRITICAL FIX: Validar que chord_obj y su root existan
+            # music21 no siempre puede identificar la raíz de acordes cromáticos
+            if not chord_obj:
+                return False
+            
+            # Si chord_obj.root es None, get_intervals_from_root() retornará []
+            # pero validamos explícitamente para evitar AttributeError
+            if not hasattr(chord_obj, 'root') or chord_obj.root is None:
+                logger.debug("Acorde sin raíz identificada, no se puede validar como cromático")
+                return False
+            
             intervals = chord_obj.get_intervals_from_root()
             
             if not intervals:
@@ -2469,17 +2480,30 @@ class ImproperOmissionRule(HarmonicRule):
         Returns:
             Dict con información de violación, o None
         """
-        # CRITICAL FIX: Usar SIEMPRE método legacy cuando no hay 'quality'
-        # El método basado en chord_knowledge requiere chord_type para detectar
-        # factores faltantes, pero chord_type es None si 'quality' no viene del frontend
+        # ========== CLÁUSULA DE GUARDA #1: Acordes cromáticos pre-identificados ==========
+        # Si analizador_tonal.py YA marcó el acorde como cromático (tipo_especial),
+        # exentarlo INMEDIATAMENTE sin validar factores
+        tipo_especial = chord_dict.get('tipo_especial')
         
+        if tipo_especial:
+            # Tipos cromáticos conocidos: +6it, +6fr, +6al, N (Napolitana)
+            acordes_cromaticos_validos = ['+6it', '+6fr', '+6al', 'N', 'dominante_secundaria', 'prestamo_menor']
+            
+            if tipo_especial in acordes_cromaticos_validos:
+                logger.debug(f"Acorde cromático detectado por tipo_especial='{tipo_especial}', exento de validación de omisión")
+                return None  # Acorde cromático válido, no aplicar reglas
+        
+        # ========== CONVERSIÓN A OBJETO CHORD ==========
         chord_obj = _dict_to_chord_safe(chord_dict)
         
-        # NUEVO: Detectar acordes cromáticos ANTES de validar factores
-        # Acordes como 6ª Aumentada tienen estructura no-triádica y se exentan
+        # ========== CLÁUSULA DE GUARDA #2: Detección de cromáticos por intervalos ==========
+        # Si el acorde tiene intervalos cromáticos característicos (6ª Aug, etc.),
+        # exentarlo aunque tipo_especial no esté presente (fallback robusto)
         if chord_obj and self._is_chromatic_chord(chord_obj):
+            logger.debug(f"Acorde cromático detectado por intervalos, exento de validación")
             return None  # Acorde cromático válido, no aplicar reglas de omisión
         
+        # ========== VALIDACIÓN NORMAL: Acordes diatónicos ==========
         # Si no se puede crear el objeto Chord O si chord_type es None/unknown,
         # usar método legacy que funciona solo con root + notas SATB
         if chord_obj is None or chord_obj.chord_type is None or chord_obj.chord_type == 'unknown':
