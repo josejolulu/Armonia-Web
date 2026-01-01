@@ -69,77 +69,152 @@ class ContextAnalyzer:
         """
         Detecta si dos acordes son el mismo acorde con diferente disposición.
         
-        Criterios:
-            - Misma fundamental
-            - Misma calidad (mayor, menor, etc.)
-            - Misma inversión
-            - Diferente distribución de voces
+        Detecta si dos acordes son el mismo acorde con diferente disposición (voicing).
         
-        Args:
-            chord1, chord2: Diccionarios con análisis de acordes
-            
+        Un cambio de disposición ocurre cuando:
+        - Mismo acorde (root, quality, inversión)
+        - Mismas pitch classes (notas sin considerar octava)
+        - Pero diferentes octavas en las voces
+        
+        Ejemplo:
+            Acorde 1: C3-E3-G3-C4 (Do Mayor cerrado)
+            Acorde 2: C3-G3-C4-E4 (Do Mayor abierto)
+            → Mismo pitch classes {0,4,7} pero diferente distribución
+        
         Returns:
-            True si es cambio de disposición
+            True si es cambio de disposición válido, False si no
         """
-        try:
-            # Comparar fundamentales y calidad
-            if 'root' not in chord1 or 'root' not in chord2:
-                return False
-            
-            same_root = chord1.get('root') == chord2.get('root')
-            same_quality = chord1.get('quality') == chord2.get('quality')
-            same_inversion = chord1.get('inversion') == chord2.get('inversion')
-            
-            # Si todo es igual excepto el voicing, es cambio de disposición
-            if same_root and same_quality and same_inversion:
-                # Verificar que las notas sean las mismas pero en diferente distribución
-                voices1 = {chord1.get('S'), chord1.get('A'), chord1.get('T'), chord1.get('B')}
-                voices2 = {chord2.get('S'), chord2.get('A'), chord2.get('T'), chord2.get('B')}
-                
-                # Mismo conjunto de notas (pitch classes)
-                if voices1 == voices2:
-                    return False  # Exactamente el mismo voicing
-                
-                return True
-            
+        from music21 import pitch
+        
+        # DEBUG: Log para ver qué llega
+        logger.debug(f"=== is_voicing_change DEBUG ===")
+        logger.debug(f"chord1: root={chord1.get('root')}, quality={chord1.get('quality')}, inv={chord1.get('inversion')}")
+        logger.debug(f"chord2: root={chord2.get('root')}, quality={chord2.get('quality')}, inv={chord2.get('inversion')}")
+        
+        # Verificar que sean el mismo acorde básico
+        same_root = chord1.get('root') == chord2.get('root')
+        same_quality = chord1.get('quality') == chord2.get('quality')
+        same_inversion = chord1.get('inversion') == chord2.get('inversion')
+        
+        logger.debug(f"same_root={same_root}, same_quality={same_quality}, same_inversion={same_inversion}")
+        
+        if not (same_root and same_quality and same_inversion):
+            logger.debug("NO es mismo acorde básico → False")
             return False
+        
+        # NUEVO: Comparar pitch classes en lugar de strings
+        def get_pitch_classes(chord_dict):
+            """
+            Obtiene pitch classes (0-11) de las notas del acorde.
             
-        except Exception as e:
-            logger.warning(f"Error detectando cambio de disposición: {e}")
+            Pitch class: Clase de altura cromática sin octava
+            Do=0, Do#=1, Re=2, ..., Si=11
+            
+            Esto permite comparar "C4" y "C5" como la misma nota (pitch class 0)
+            """
+            pitch_classes = set()
+            for voice in ['S', 'A', 'T', 'B']:
+                note_str = chord_dict.get(voice)
+                if note_str:
+                    try:
+                        p = pitch.Pitch(note_str)
+                        pitch_classes.add(p.pitchClass)  # 0-11
+                    except:
+                        # Si falla parseo, ignorar esta nota
+                        pass
+            return pitch_classes
+        
+        pc1 = get_pitch_classes(chord1)
+        pc2 = get_pitch_classes(chord2)
+        
+        logger.debug(f"pitch_classes1={pc1}, pitch_classes2={pc2}")
+        
+        # Si NO tienen los mismos pitch classes, no es el mismo acorde
+        if pc1 != pc2:
+            logger.debug("Pitch classes diferentes → False")
             return False
+        
+        # Si tienen los mismos pitch classes...
+        # ...entonces verificar si las voces están en diferentes octavas
+        voices1 = {chord1.get('S'), chord1.get('A'), chord1.get('T'), chord1.get('B')}
+        voices2 = {chord2.get('S'), chord2.get('A'), chord2.get('T'), chord2.get('B')}
+        
+        # Eliminar None values
+        voices1.discard(None)
+        voices2.discard(None)
+        
+        logger.debug(f"voices1={voices1}, voices2={voices2}")
+        
+        if voices1 != voices2:
+            # Mismas pitch classes, pero diferentes strings de notas
+            # → Es un cambio de disposición válido
+            logger.info(f"✅ VOICING CHANGE DETECTADO: {pc1}")
+            return True
+        
+        # Exactamente el mismo voicing (mismas notas, mismas octavas)
+        logger.debug("Exactamente el mismo voicing → False")
+        return False
     
     @staticmethod
     def is_V_VII_pair(chord1: Dict, chord2: Dict, key: str) -> bool:
         """
-        Detecta si dos acordes forman un par V-VII o VII-V.
+        Detecta si una progresión es V-VII o VII-V (ambas direcciones).
         
-        Estos acordes tienen la misma función dominante y comparten
-        muchas notas, por lo que ciertas reglas se relajan.
+        Razón pedagógica:
+            Tanto V como VII tienen función dominante y comparten el tritono.
+            La progresión V→VII o VII→V es aceptable armónicamente por esta razón.
+        
+        Criterios:
+            - Grados 5 y 7 (en cualquier orden)
+            - Preferiblemente ambos con función dominante 'D'
+            - Si no hay función disponible, asumir válido (fallback)
         
         Args:
-            chord1, chord2: Análisis de acordes
-            key: Tonalidad actual ('C major', 'A minor', etc.)
-            
+            chord1, chord2: Diccionarios de acordes
+            key: Tonalidad (no usado actualmente, pero disponible)
+        
         Returns:
-            True si forman un par V-VII
+            True si es un par V-VII válido
+        
+        Examples:
+            V → VII (Do Mayor): G → B° ✅
+            VII → V (Do Mayor): B° → G ✅
         """
         try:
+            # Obtener grados de ambos acordes
             degree1 = chord1.get('degree_num', 0)
             degree2 = chord2.get('degree_num', 0)
             
-            # Verificar si forman el par {5, 7}
             degrees = {degree1, degree2}
             
-            if degrees == {5, 7}:
-                # Verificar que ambos tengan función dominante
-                func1 = chord1.get('function', '')
-                func2 = chord2.get('function', '')
-                
-                if func1 == 'D' and func2 == 'D':
-                    return True
+            # Verificar que sean los grados 5 y 7 (V y VII)
+            if degrees != {5, 7}:
+                return False
             
+            # NUEVO: Verificar función dominante con fallback robusto
+            # Intentar múltiples nombres de campo por si acaso
+            func1 = chord1.get('function', chord1.get('funcion', ''))
+            func2 = chord2.get('function', chord2.get('funcion', ''))
+            
+            # Si ambos tienen función dominante explícita, aceptar
+            if func1 == 'D' and func2 == 'D':
+                logger.debug(f"Excepción V-VII aplicada: grados {degree1}→{degree2} (ambos con función D)")
+                return True
+            
+            # FALLBACK: Si no hay campo function disponible,
+            # asumir que V y VII son dominantes (pedagógicamente correcto)
+            if not func1 or not func2:
+                logger.debug(f"Excepción V-VII aplicada: grados {degree1}→{degree2} (sin campo function, asumiendo dominantes)")
+                return True
+            
+            # Si solo uno tiene función D, también considerarlo (caso edge)
+            if 'D' in (func1, func2):
+                logger.debug(f"Excepción V-VII aplicada: grados {degree1}→{degree2} (al menos uno con función D)")
+                return True
+            
+            # No se cumplen criterios
             return False
-            
+                
         except Exception as e:
             logger.warning(f"Error detectando par V-VII: {e}")
             return False
@@ -963,7 +1038,12 @@ class DirectFifthsRule(HarmonicRule):
             short_msg='Quinta directa',
             full_msg='Dos voces llegan a quinta justa por movimiento directo. Evita: debilita la independencia de voces.'
         )
-        # Sin excepciones inicialmente
+        # NUEVO: Añadir excepción de cambio de disposición
+        self.add_exception(
+            'voicing_change',
+            lambda c1, c2, ctx: ContextAnalyzer.is_voicing_change(c1, c2),
+            'Permitido en cambio de disposición del mismo acorde'
+        )
     
     def _detect_violation(self, chord1: Dict, chord2: Dict) -> Optional[Dict]:
         """
