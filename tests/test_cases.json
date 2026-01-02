@@ -70,8 +70,8 @@
             "description": "Solo primera quinta (P19), segunda es tercera - no error",
             "chord1": {
                 "S": "G5",
-                "A": "E4",
-                "T": "C4",
+                "A": "E5",
+                "T": "C5",
                 "B": "C3",
                 "root": "C",
                 "quality": "major",
@@ -81,8 +81,8 @@
             },
             "chord2": {
                 "S": "F5",
-                "A": "D4",
-                "T": "A3",
+                "A": "D5",
+                "T": "A4",
                 "B": "D3",
                 "root": "D",
                 "quality": "minor",

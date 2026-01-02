@@ -5,8 +5,8 @@ Debug específico para test pf_003: Quintas contrarias S-B
 import music21
 
 # Test case pf_003
-chord1 = {'S': 'G5', 'A': 'E4', 'T': 'C4', 'B': 'C3'}
-chord2 = {'S': 'F5', 'A': 'D4', 'T': 'A3', 'B': 'D3'}
+chord1 = {'S': 'G5', 'A': 'E5', 'T': 'C5', 'B': 'C3'}
+chord2 = {'S': 'F5', 'A': 'D5', 'T': 'A4', 'B': 'D3'}
 
 print("=" * 80)
 print("DEBUG: Test pf_003 - Quintas contrarias S-B")
