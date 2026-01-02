@@ -1144,20 +1144,28 @@ const AudioStudio = {
             el.classList.toggle('seleccionado', i === index);
         });
 
-        // AUTO-SCROLL V2: Esperar a que el render visual se complete
-        // requestAnimationFrame + setTimeout garantiza que el DOM está listo
+        // Detectar si es móvil (ancho < 600px)
+        const isMobile = window.innerWidth < 600;
+
+        // AUTO-SCROLL: Esperar a que el render visual se complete
         requestAnimationFrame(() => {
             setTimeout(() => {
-                // Centrar la nota del error en pantalla
+                // Scroll INSTANTÁNEO para que scrollLeft sea correcto al calcular tooltip
                 this.scrollToNotePosition(this.state.cursorIndex, {
-                    smooth: true,
+                    smooth: false,  // Instantáneo para timing correcto
                     center: true,
                     padding: 150,
                     force: true
                 });
 
-                // Mostrar tooltip después del scroll
-                setTimeout(() => {
+                // Mostrar tooltip inmediatamente después del scroll instantáneo
+                // En móvil: tooltip centrado arriba (más visible)
+                // En desktop: tooltip cerca de la nota
+                if (isMobile) {
+                    // Móvil: tooltip centrado simple
+                    this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto, 6000);
+                } else {
+                    // Desktop: tooltip posicionado cerca del error
                     const noteX = this.state.notePositionsX[this.state.cursorIndex];
                     if (noteX !== undefined) {
                         const scrollContainer = document.querySelector('.scroll-partitura');
@@ -1166,12 +1174,9 @@ const AudioStudio = {
                             const scrollLeft = scrollContainer.scrollLeft;
                             const absX = noteX - scrollLeft + containerRect.left;
                             const absY = containerRect.top + 80;
-
                             this.tooltipManager.showAtPosition(
                                 this.state.errorSeleccionado.mensaje_corto,
-                                absX,
-                                absY,
-                                6000
+                                absX, absY, 6000
                             );
                         } else {
                             this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
@@ -1179,8 +1184,8 @@ const AudioStudio = {
                     } else {
                         this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
                     }
-                }, 300); // Esperar que scroll complete
-            }, 50); // Pequeño delay para DOM update
+                }
+            }, 50);
         });
     },
 
