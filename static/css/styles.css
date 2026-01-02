@@ -1438,8 +1438,9 @@ body.mode-write #deck {
     .scroll-partitura {
         padding-top: 10px;
         padding-bottom: 20px;
-        overflow-y: auto;
-        /* Scroll vital */
+        overflow-x: auto;
+        overflow-y: hidden;
+        /* Scroll horizontal vital para partitura */
         height: 100%;
     }
 
