@@ -32,7 +32,10 @@ const AppState = {
         tonalidad: {
             tonica: 'C',
             modo: 'major'
-        }
+        },
+        // Auto-scroll control
+        touchActive: false,
+        touchDebounceTimer: null
     },
 
     // Inicialización del estado

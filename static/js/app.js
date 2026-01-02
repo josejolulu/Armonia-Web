@@ -62,6 +62,9 @@ const AudioStudio = {
         // BUG #7: Configurar touch listeners para piano móvil
         this.setupPianoTouchListeners();
 
+        // AUTO-SCROLL: Configurar touch listeners para detectar scroll manual
+        this.setupScrollTouchListeners();
+
         // Analizar inicialmente para mostrar grados si hay notas recuperadas
         setTimeout(() => this.analyzePartiture(true), 500);
 
@@ -349,6 +352,10 @@ const AudioStudio = {
         this.tooltipManager.hide();
         this.updateUI();
         this.renderPartiture();
+
+        // AUTO-SCROLL: Desplazar para mantener visible el compás actual
+        this.scrollToCurrentPosition({ smooth: true });
+
         document.getElementById('panel-resultados').style.display = 'none';
     },
 
@@ -417,6 +424,10 @@ const AudioStudio = {
         }
 
         this.renderPartiture();
+
+        // AUTO-SCROLL: Desplazar para mantener visible el compás actual
+        this.scrollToCurrentPosition({ smooth: true });
+
         document.getElementById('panel-resultados').style.display = 'none';
         this.scheduleValidation();
     },
@@ -898,6 +909,101 @@ const AudioStudio = {
     clearGrados() {
         const container = document.getElementById('grados-container');
         if (container) container.innerHTML = '';
+    },
+
+    // ===== AUTO-SCROLL HORIZONTAL =====
+    /**
+     * Desplaza el contenedor de scroll para que el compás actual sea visible.
+     * Calcula la posición basada en cursorIndex y config.
+     * 
+     * @param {Object} options - Opciones de scroll
+     * @param {boolean} options.smooth - Usar transición suave (default: true)
+     * @param {boolean} options.center - Centrar el compás en pantalla (default: false)
+     */
+    scrollToCurrentPosition(options = {}) {
+        const { smooth = true, center = false } = options;
+
+        const scrollContainer = document.querySelector('.scroll-partitura');
+        if (!scrollContainer) return;
+
+        // Detectar si hay touch activo (evitar interferencia con scroll manual)
+        if (this.state.touchActive) return;
+
+        const measureIndex = Math.floor(this.state.cursorIndex / 4);
+        const measureWidth = 270; // Ancho de cada compás en VexFlow (this.config)
+        const containerWidth = scrollContainer.clientWidth;
+
+        let targetScroll;
+
+        if (center) {
+            // Centrar el compás en la pantalla
+            targetScroll = (measureIndex * measureWidth) - (containerWidth / 2) + (measureWidth / 2);
+        } else {
+            // Mostrar el compás con margen (un compás de anticipación)
+            targetScroll = Math.max(0, (measureIndex - 1) * measureWidth);
+        }
+
+        // Limitar scroll al máximo posible
+        const maxScroll = scrollContainer.scrollWidth - containerWidth;
+        targetScroll = Math.min(targetScroll, maxScroll);
+
+        if (smooth) {
+            scrollContainer.scrollTo({
+                left: targetScroll,
+                behavior: 'smooth'
+            });
+        } else {
+            scrollContainer.scrollLeft = targetScroll;
+        }
+    },
+
+    /**
+     * Marca que hay un touch activo (para evitar auto-scroll durante scroll manual)
+     */
+    setTouchActive(active) {
+        this.state.touchActive = active;
+
+        // Debounce: volver a habilitar auto-scroll tras 300ms sin touch
+        if (!active) {
+            clearTimeout(this.state.touchDebounceTimer);
+            this.state.touchDebounceTimer = setTimeout(() => {
+                this.state.touchActive = false;
+            }, 300);
+        }
+    },
+
+    /**
+     * Configura listeners de touch/scroll en el contenedor de la partitura
+     * para detectar scroll manual del usuario y pausar el auto-scroll
+     */
+    setupScrollTouchListeners() {
+        const scrollContainer = document.querySelector('.scroll-partitura');
+        if (!scrollContainer) {
+            console.warn('[AUTO-SCROLL] Contenedor .scroll-partitura no encontrado');
+            return;
+        }
+
+        // Touch start: marcar que hay touch activo
+        scrollContainer.addEventListener('touchstart', () => {
+            this.setTouchActive(true);
+        }, { passive: true });
+
+        // Touch end: desmarcar después de debounce
+        scrollContainer.addEventListener('touchend', () => {
+            this.setTouchActive(false);
+        }, { passive: true });
+
+        // También detectar scroll por mouse (wheel)
+        scrollContainer.addEventListener('wheel', () => {
+            this.setTouchActive(true);
+            // Reset después de 500ms de inactividad
+            clearTimeout(this.state.touchDebounceTimer);
+            this.state.touchDebounceTimer = setTimeout(() => {
+                this.state.touchActive = false;
+            }, 500);
+        }, { passive: true });
+
+        console.log('[AUTO-SCROLL] Touch listeners configurados');
     },
 
     highlightError(index) {
