@@ -307,8 +307,12 @@
                 "function": "D"
             },
             "key": "C major",
-            "expected": "OK",
-            "exception": "V_VII_pair"
+            "expected": "ERROR",
+            "voices_affected": [
+                "B",
+                "S"
+            ],
+            "note": "VII-V con quintas desiguales es error segun reglas generales"
         }
     ]
 }
