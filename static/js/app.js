@@ -911,41 +911,119 @@ const AudioStudio = {
         if (container) container.innerHTML = '';
     },
 
-    // ===== AUTO-SCROLL HORIZONTAL =====
+    // ===== AUTO-SCROLL HORIZONTAL INTELIGENTE =====
+    // VERSIÓN 2: Scroll basado en posición X de notas SVG (no compases)
+
     /**
-     * Desplaza el contenedor de scroll para que el compás actual sea visible.
-     * Calcula la posición basada en cursorIndex y config.
-     * 
-     * @param {Object} options - Opciones de scroll
-     * @param {boolean} options.smooth - Usar transición suave (default: true)
-     * @param {boolean} options.center - Centrar el compás en pantalla (default: false)
+     * Almacena posiciones X de notas tras el render para scroll preciso.
+     * Se llama después de vf.draw() en renderPartiture().
      */
-    scrollToCurrentPosition(options = {}) {
-        const { smooth = true, center = false } = options;
+    cacheNotePositions() {
+        this.state.notePositionsX = [];
+
+        // Obtener todos los elementos de nota del SVG
+        const lienzo = document.getElementById('lienzo-partitura');
+        if (!lienzo) return;
 
         const scrollContainer = document.querySelector('.scroll-partitura');
         if (!scrollContainer) return;
 
-        // Detectar si hay touch activo (evitar interferencia con scroll manual)
+        // Buscar elementos de notas por tiempo usando data-attributes o posición
+        // VexFlow añade clases a los elementos, buscar noteheads
+        const noteGroups = lienzo.querySelectorAll('.vf-stavenote');
+
+        // Agrupar por posición X aproximada (cada 4 grupos = 1 tiempo)
+        const positionsByIndex = new Map();
+
+        noteGroups.forEach((group, idx) => {
+            const rect = group.getBoundingClientRect();
+            const containerRect = scrollContainer.getBoundingClientRect();
+            // Posición X relativa al contenedor (scrolled)
+            const relativeX = rect.left - containerRect.left + scrollContainer.scrollLeft;
+
+            // Determinar índice de tiempo basado en posición ordinal
+            // Las notas se ordenan: S1, A1, T1, B1, S2, A2, T2, B2...
+            const timeIndex = Math.floor(idx / 4);  // 4 voces por tiempo
+
+            if (!positionsByIndex.has(timeIndex)) {
+                positionsByIndex.set(timeIndex, relativeX);
+            }
+        });
+
+        // Convertir a array ordenado
+        this.state.notePositionsX = Array.from(positionsByIndex.entries())
+            .sort((a, b) => a[0] - b[0])
+            .map(entry => entry[1]);
+
+        console.log(`[SCROLL] Cached ${this.state.notePositionsX.length} note positions`);
+    },
+
+    /**
+     * Desplaza el contenedor para mostrar la nota en el índice especificado.
+     * VERSIÓN 2: Usa posiciones reales de SVG, no estimaciones de compás.
+     * 
+     * @param {number} timeIndex - Índice del tiempo a mostrar
+     * @param {Object} options - Opciones de scroll
+     * @param {boolean} options.smooth - Usar transición suave (default: true)
+     * @param {boolean} options.center - Centrar la nota en pantalla (default: false)
+     * @param {number} options.padding - Padding de seguridad en px (default: 100)
+     */
+    scrollToNotePosition(timeIndex, options = {}) {
+        const { smooth = true, center = false, padding = 100 } = options;
+
+        const scrollContainer = document.querySelector('.scroll-partitura');
+        if (!scrollContainer) return;
+
+        // Respetar scroll manual del usuario
         if (this.state.touchActive) return;
 
-        const measureIndex = Math.floor(this.state.cursorIndex / 4);
-        const measureWidth = 270; // Ancho de cada compás en VexFlow (this.config)
+        // Fallback a scroll por compás si no hay posiciones cacheadas
+        if (!this.state.notePositionsX || this.state.notePositionsX.length === 0) {
+            this.scrollToCurrentPosition(options);
+            return;
+        }
+
+        // Obtener posición X de la nota
+        const noteX = this.state.notePositionsX[timeIndex];
+        if (noteX === undefined) {
+            // Fallback: usar última posición conocida
+            const lastKnown = this.state.notePositionsX[this.state.notePositionsX.length - 1] || 0;
+            return this.scrollToNotePosition(this.state.notePositionsX.length - 1, options);
+        }
+
         const containerWidth = scrollContainer.clientWidth;
+        const currentScroll = scrollContainer.scrollLeft;
+
+        // Calcular si la nota está visible
+        const noteViewportX = noteX - currentScroll;
+        const isVisible = noteViewportX > padding && noteViewportX < (containerWidth - padding);
+
+        // Si está visible con padding suficiente, no scroll
+        if (isVisible && !center) return;
 
         let targetScroll;
 
         if (center) {
-            // Centrar el compás en la pantalla
-            targetScroll = (measureIndex * measureWidth) - (containerWidth / 2) + (measureWidth / 2);
+            // Centrar la nota en el tercio central
+            targetScroll = noteX - (containerWidth / 2);
         } else {
-            // Mostrar el compás con margen (un compás de anticipación)
-            targetScroll = Math.max(0, (measureIndex - 1) * measureWidth);
+            // Mantener padding de seguridad a la derecha (para notas nuevas)
+            const rightThreshold = containerWidth * 0.75;  // 25% del margen derecho
+
+            if (noteViewportX > rightThreshold) {
+                // Nota cerca del borde derecho: scroll para dejar padding
+                targetScroll = noteX - (containerWidth - padding);
+            } else if (noteViewportX < padding) {
+                // Nota fuera por la izquierda
+                targetScroll = noteX - padding;
+            } else {
+                return;  // Ya visible con suficiente espacio
+            }
         }
 
-        // Limitar scroll al máximo posible
+        // Limitar scroll
         const maxScroll = scrollContainer.scrollWidth - containerWidth;
-        targetScroll = Math.min(targetScroll, maxScroll);
+        targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
 
         if (smooth) {
             scrollContainer.scrollTo({
@@ -956,6 +1034,16 @@ const AudioStudio = {
             scrollContainer.scrollLeft = targetScroll;
         }
     },
+
+    /**
+     * [DEPRECADO] Mantener para compatibilidad
+     * @deprecated Use scrollToNotePosition instead
+     */
+    scrollToCurrentPosition(options = {}) {
+        // Redirigir al nuevo método
+        this.scrollToNotePosition(this.state.cursorIndex, options);
+    },
+
 
     /**
      * Marca que hay un touch activo (para evitar auto-scroll durante scroll manual)
@@ -1011,10 +1099,13 @@ const AudioStudio = {
         this.state.cursorIndex = this.state.errorSeleccionado.tiempo_index;
         this.renderPartiture();
 
-        const sc = document.querySelector('.scroll-partitura');
-        const measureIndex = Math.floor(this.state.cursorIndex / 4);
-        const scrollPosition = (measureIndex - 1) * 300;
-        if (scrollPosition > 0) sc.scrollLeft = scrollPosition;
+        // AUTO-SCROLL V2: Centrar la nota del error en pantalla
+        // Usar center:true para que el tooltip tenga espacio a ambos lados
+        this.scrollToNotePosition(this.state.cursorIndex, {
+            smooth: true,
+            center: true,
+            padding: 150  // Extra padding para tooltips
+        });
 
         document.querySelectorAll('.item-error').forEach((el, i) => {
             el.classList.toggle('seleccionado', i === index);
@@ -1176,6 +1267,9 @@ const AudioStudio = {
 
             // FASE 2.1: Renderizar grados con posiciones X reales de VexFlow
             this.renderGrados(notasBajoConIndice);
+
+            // AUTO-SCROLL V2: Cachear posiciones X de notas para scroll inteligente
+            this.cacheNotePositions();
 
             // AUTO-FOCUS: Reclamar foco para que teclado funcione desde el inicio
             document.body.focus();

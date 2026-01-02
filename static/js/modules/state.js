@@ -35,7 +35,9 @@ const AppState = {
         },
         // Auto-scroll control
         touchActive: false,
-        touchDebounceTimer: null
+        touchDebounceTimer: null,
+        // Posiciones X de notas para scroll inteligente
+        notePositionsX: []
     },
 
     // Inicialización del estado
