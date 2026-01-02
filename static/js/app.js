@@ -52,9 +52,10 @@ const AudioStudio = {
             let tooltipX = x - containerRect.left + scrollLeft + 20; // 20px offset a la derecha
             let tooltipY = y - containerRect.top - 40; // 40px arriba del error
 
-            // Limitar a los bordes del contenedor (considerando scroll)
+            // Limitar a los bordes VISIBLES del viewport (no al scrollWidth total)
             const tooltipWidth = 280; // max-width del tooltip
-            const maxX = scrollContainer ? scrollContainer.scrollWidth - tooltipWidth - 20 : 400;
+            const viewportRight = scrollLeft + (scrollContainer ? scrollContainer.clientWidth : 400);
+            const maxX = viewportRight - tooltipWidth - 10; // Dentro del área visible
             if (tooltipX > maxX) tooltipX = maxX;
             if (tooltipX < scrollLeft + 10) tooltipX = scrollLeft + 10;  // Mínimo relativo al scroll
             if (tooltipY < 10) tooltipY = 60; // Si está muy arriba, ponerlo debajo
