@@ -66,7 +66,10 @@ const AudioEngine = {
     },
 
     // Reproducción de Partitura Completa (con Transport)
-    async playScore(partitura, bpm = 120) {
+    // @param {Array} partitura - Array de tiempos con notas
+    // @param {number} bpm - Tempo en beats por minuto
+    // @param {Function} onProgress - Callback llamado en cada tiempo (recibe index)
+    async playScore(partitura, bpm = 120, onProgress = null) {
         if (!this.isReady) await this.init();
         await Tone.start();
 
@@ -75,19 +78,26 @@ const AudioEngine = {
 
         Tone.Transport.bpm.value = bpm;
 
-        // Mapear eventos
+        // Mapear eventos con índice para el callback
         const events = partitura.map((tiempo, index) => {
             const notas = [];
             if (tiempo.S) notas.push(tiempo.S.replace('/', ''));
             if (tiempo.A) notas.push(tiempo.A.replace('/', ''));
             if (tiempo.T) notas.push(tiempo.T.replace('/', ''));
             if (tiempo.B) notas.push(tiempo.B.replace('/', ''));
-            return { time: `0:${index}`, notes: notas };
+            return { time: `0:${index}`, notes: notas, index: index };
         });
 
-        // Crear Part
+        // Crear Part con callback de progreso
         this.sequence = new Tone.Part((time, value) => {
             if (this.synth) this.synth.triggerAttackRelease(value.notes, "4n", time);
+
+            // Llamar callback de progreso en el hilo principal (via Draw)
+            if (onProgress && typeof onProgress === 'function') {
+                Tone.Draw.schedule(() => {
+                    onProgress(value.index);
+                }, time);
+            }
         }, events).start(0);
 
         this.sequence.loop = false;
@@ -95,6 +105,12 @@ const AudioEngine = {
         // Auto-stop al final
         Tone.Transport.scheduleOnce(() => {
             this.stop();
+            // Notificar fin de reproducción
+            if (onProgress) {
+                Tone.Draw.schedule(() => {
+                    onProgress(-1); // -1 indica fin
+                }, Tone.now());
+            }
         }, `0:${partitura.length}`);
 
         Tone.Transport.start();

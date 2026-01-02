@@ -1244,7 +1244,25 @@ const AudioStudio = {
     // ===== CONTROLES DE REPRODUCCIÓN (Fase 2.3) =====
     playScore() {
         const bpm = parseInt(document.getElementById('bpm-input').value) || 120;
-        AudioEngine.playScore(this.state.partitura, bpm);
+
+        // Callback de progreso para auto-scroll sincronizado
+        const onProgress = (timeIndex) => {
+            if (timeIndex === -1) {
+                // Fin de reproducción
+                console.log('[PLAYBACK] Fin de reproducción');
+                return;
+            }
+
+            // Actualizar cursor visual al tiempo actual
+            this.state.cursorIndex = timeIndex;
+            this.updateUI();
+            this.renderPartiture();
+
+            // Auto-scroll sin smooth para seguir el tempo (inmediato)
+            this.scrollToCurrentPosition({ smooth: false, center: true });
+        };
+
+        AudioEngine.playScore(this.state.partitura, bpm, onProgress);
     },
 
     pauseScore() {
