@@ -42,16 +42,24 @@ const AudioStudio = {
             const scrollContainer = document.querySelector('.scroll-partitura');
             const containerRect = scrollContainer ? scrollContainer.getBoundingClientRect() : { left: 0, top: 0 };
 
-            // Calcular posición relativa al contenedor de scroll
-            let tooltipX = x - containerRect.left + 20; // 20px offset a la derecha
+            // CORRECCIÓN CRÍTICA para móvil:
+            // getBoundingClientRect() devuelve posición en VIEWPORT
+            // El tooltip es position:absolute, relativo al CONTAINER (no al viewport)
+            // Debemos SUMAR scrollLeft para compensar el scroll horizontal
+            const scrollLeft = scrollContainer ? scrollContainer.scrollLeft : 0;
+
+            // Fórmula: posición_en_viewport - container_left + scroll_offset
+            let tooltipX = x - containerRect.left + scrollLeft + 20; // 20px offset a la derecha
             let tooltipY = y - containerRect.top - 40; // 40px arriba del error
 
-            // Limitar a los bordes del contenedor
+            // Limitar a los bordes del contenedor (considerando scroll)
             const tooltipWidth = 280; // max-width del tooltip
-            const maxX = scrollContainer ? scrollContainer.clientWidth - tooltipWidth - 20 : 400;
+            const maxX = scrollContainer ? scrollContainer.scrollWidth - tooltipWidth - 20 : 400;
             if (tooltipX > maxX) tooltipX = maxX;
-            if (tooltipX < 10) tooltipX = 10;
+            if (tooltipX < scrollLeft + 10) tooltipX = scrollLeft + 10;  // Mínimo relativo al scroll
             if (tooltipY < 10) tooltipY = 60; // Si está muy arriba, ponerlo debajo
+
+            console.log(`[TOOLTIP] x=${x}, containerLeft=${containerRect.left}, scrollLeft=${scrollLeft}, tooltipX=${tooltipX}`);
 
             tooltip.style.top = `${tooltipY}px`;
             tooltip.style.left = `${tooltipX}px`;
