@@ -1179,28 +1179,28 @@ const AudioStudio = {
                     }, 100);
                 }
 
-                // Mostrar tooltip
-                if (isMobile) {
-                    this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto, 6000);
+                // TOOLTIP POSICIONADO: Obtener posición X del elemento SVG de la nota
+                // Funciona igual en móvil y desktop
+                const noteElement = this.getNoteElementByTimeIndex(this.state.cursorIndex);
+
+                if (noteElement) {
+                    // Usar getBoundingClientRect para posición real en pantalla
+                    const noteRect = noteElement.getBoundingClientRect();
+                    const scrollContainer = document.querySelector('.scroll-partitura');
+                    const containerRect = scrollContainer ? scrollContainer.getBoundingClientRect() : { top: 0 };
+
+                    // Posición X: centro del elemento SVG de la nota
+                    const absX = noteRect.left + (noteRect.width / 2);
+                    // Posición Y: arriba del pentagrama (dentro del scroll-container)
+                    const absY = containerRect.top + 50;
+
+                    this.tooltipManager.showAtPosition(
+                        this.state.errorSeleccionado.mensaje_corto,
+                        absX, absY, 6000
+                    );
                 } else {
-                    const noteX = this.state.notePositionsX[this.state.cursorIndex];
-                    if (noteX !== undefined) {
-                        const scrollContainer = document.querySelector('.scroll-partitura');
-                        if (scrollContainer) {
-                            const containerRect = scrollContainer.getBoundingClientRect();
-                            const scrollLeft = scrollContainer.scrollLeft;
-                            const absX = noteX - scrollLeft + containerRect.left;
-                            const absY = containerRect.top + 80;
-                            this.tooltipManager.showAtPosition(
-                                this.state.errorSeleccionado.mensaje_corto,
-                                absX, absY, 6000
-                            );
-                        } else {
-                            this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
-                        }
-                    } else {
-                        this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
-                    }
+                    // Fallback: tooltip centrado si no encontramos el elemento
+                    this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto, 6000);
                 }
             });
         });
