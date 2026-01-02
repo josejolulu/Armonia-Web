@@ -1139,44 +1139,48 @@ const AudioStudio = {
         this.state.cursorIndex = this.state.errorSeleccionado.tiempo_index;
         this.renderPartiture();
 
-        // AUTO-SCROLL V2: Centrar la nota del error en pantalla
-        // force: true para ignorar touchActive (el usuario acaba de tocar la lista de errores)
-        this.scrollToNotePosition(this.state.cursorIndex, {
-            smooth: true,
-            center: true,
-            padding: 150,
-            force: true
-        });
-
-        // Calcular posición para tooltip dinámico
-        const noteX = this.state.notePositionsX[this.state.cursorIndex];
-        if (noteX !== undefined) {
-            // Obtener posición del contenedor scroll para calcular coordenadas absolutas
-            const scrollContainer = document.querySelector('.scroll-partitura');
-            if (scrollContainer) {
-                const containerRect = scrollContainer.getBoundingClientRect();
-                const scrollLeft = scrollContainer.scrollLeft;
-                // Posición X absoluta = posición de nota - scroll + offset del contenedor
-                const absX = noteX - scrollLeft + containerRect.left;
-                // Posición Y = parte superior del pentagrama (aproximado)
-                const absY = containerRect.top + 80;
-
-                this.tooltipManager.showAtPosition(
-                    this.state.errorSeleccionado.mensaje_corto,
-                    absX,
-                    absY,
-                    6000
-                );
-            } else {
-                // Fallback a tooltip centrado
-                this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
-            }
-        } else {
-            this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
-        }
-
+        // Marcar los elementos en la lista de errores
         document.querySelectorAll('.item-error').forEach((el, i) => {
             el.classList.toggle('seleccionado', i === index);
+        });
+
+        // AUTO-SCROLL V2: Esperar a que el render visual se complete
+        // requestAnimationFrame + setTimeout garantiza que el DOM está listo
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                // Centrar la nota del error en pantalla
+                this.scrollToNotePosition(this.state.cursorIndex, {
+                    smooth: true,
+                    center: true,
+                    padding: 150,
+                    force: true
+                });
+
+                // Mostrar tooltip después del scroll
+                setTimeout(() => {
+                    const noteX = this.state.notePositionsX[this.state.cursorIndex];
+                    if (noteX !== undefined) {
+                        const scrollContainer = document.querySelector('.scroll-partitura');
+                        if (scrollContainer) {
+                            const containerRect = scrollContainer.getBoundingClientRect();
+                            const scrollLeft = scrollContainer.scrollLeft;
+                            const absX = noteX - scrollLeft + containerRect.left;
+                            const absY = containerRect.top + 80;
+
+                            this.tooltipManager.showAtPosition(
+                                this.state.errorSeleccionado.mensaje_corto,
+                                absX,
+                                absY,
+                                6000
+                            );
+                        } else {
+                            this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
+                        }
+                    } else {
+                        this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
+                    }
+                }, 300); // Esperar que scroll complete
+            }, 50); // Pequeño delay para DOM update
         });
     },
 
