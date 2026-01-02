@@ -2405,3 +2405,130 @@ body.mode-write #deck {
         position: relative !important;
     }
 }
+
+/* =============================================
+   MOBILE LANDSCAPE MODE - Optimización Horizontal
+   Vista "cinematográfica" del pentagrama
+   ============================================= */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+
+    /* Body: Sin padding para maximizar espacio */
+    body {
+        padding: 0;
+        gap: 0;
+    }
+
+    /* Header: Minimizado o reducido */
+    header {
+        height: 32px;
+        flex: 0 0 32px;
+        padding: 2px 8px;
+        font-size: 0.8rem;
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    header h1 {
+        font-size: 0.75rem;
+    }
+
+    /* Stage: Maximizado para pentagrama */
+    #stage {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .scroll-partitura {
+        padding-top: 5px;
+        padding-bottom: 5px;
+        height: 100%;
+    }
+
+    /* Deck: Compacto, controles mínimos */
+    #deck {
+        flex: 0 0 auto;
+        max-height: 25vh;
+        padding: 4px;
+    }
+
+    /* Ocultar lista de errores - solo tooltip visible */
+    #panel-resultados,
+    body.mode-review #panel-resultados {
+        display: none !important;
+    }
+
+    /* Ocultar controles de modo (Escribir/Revisar/Borrar) */
+    .mode-controls {
+        display: none !important;
+    }
+
+    /* Controles de reproducción: Compactos y visibles */
+    .playback-controls {
+        display: flex !important;
+        padding: 4px !important;
+        gap: 8px;
+    }
+
+    .playback-controls button {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+
+    /* Toolbar: Reducida */
+    .toolbar-row {
+        height: 36px;
+        padding: 2px 6px;
+    }
+
+    /* Teclado virtual: Oculto en landscape */
+    .keyboard-container,
+    #preview-octave {
+        display: none !important;
+    }
+
+    /* Voces: Compactas */
+    .voice-group {
+        gap: 2px;
+    }
+
+    .btn-voice {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+
+    /* Navegación: Compacta */
+    .btn-nav {
+        width: 28px;
+        height: 28px;
+        font-size: 1rem;
+    }
+
+    /* Grados: Más pequeños */
+    .grados-container {
+        font-size: 0.7rem;
+    }
+
+    /* Tooltip: Asegurar visibilidad */
+    #tooltip-error {
+        max-width: 200px;
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+
+    /* Error sidebar: Oculto en landscape */
+    .error-sidebar {
+        display: none !important;
+    }
+
+    /* BPM: Compacto */
+    .bpm-control {
+        display: none !important;
+    }
+
+    /* Modal: Adapt to landscape */
+    .modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}

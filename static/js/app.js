@@ -1506,6 +1506,20 @@ window.addEventListener('DOMContentLoaded', () => {
     console.log('[INIT] Foco global establecido en body');
 });
 
+// MOBILE LANDSCAPE: Re-render partitura al girar el dispositivo
+// Necesario para que VexFlow recalcule los anchos del SVG
+window.addEventListener('orientationchange', () => {
+    console.log('[ORIENTATION] Cambio de orientación detectado');
+
+    // Delay para esperar que el navegador complete la transición
+    setTimeout(() => {
+        if (AudioStudio && AudioStudio.state && AudioStudio.state.notasNoNormalizadas.length > 0) {
+            console.log('[ORIENTATION] Re-renderizando partitura para nuevo espacio');
+            AudioStudio.renderPartiture();
+        }
+    }, 150);
+});
+
 // Phase 2: Desktop UX Enhancements - New functions
 const AudioStudioExtensions = {
     // Sidebar toggle
