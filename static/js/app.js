@@ -1419,20 +1419,18 @@ const AudioStudio = {
                 if (idxReal === this.state.errorSeleccionado.tiempo_index ||
                     idxReal === this.state.errorSeleccionado.tiempo_index + 1) {
                     n.setStyle({ fillStyle: "#ff0000", strokeStyle: "#ff0000" });
-                    if (idxReal === this.state.errorSeleccionado.tiempo_index &&
-                        (voice === this.state.errorSeleccionado.voces[0] ||
-                            this.state.errorSeleccionado.voces[0] === '?')) {
-                        this.showTooltip(i, xOffset);
-                    }
+                    // NOTA: Tooltip se maneja en highlightError() con delay post-scroll
+                    // No llamar showTooltip aquí para evitar doble aparición
                 }
             }
         });
     },
 
+    // [OBSOLETO] showTooltip ya no se usa - tooltip se maneja en highlightError()
+    // Mantenido temporalmente por si hay otras referencias
     showTooltip(localIndex, xOffsetCompas) {
-        // Tooltip fijo en la parte superior central del stage
-        // Ya no calcula posición dinámica - se define en CSS
-        this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
+        // No hacer nada - tooltip se maneja en highlightError() con delay post-scroll
+        console.log('[TOOLTIP] showTooltip obsoleto - ignorando llamada');
     },
 
     // ===== CONTROLES DE REPRODUCCIÓN (Fase 2.3) =====
