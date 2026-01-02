@@ -991,13 +991,13 @@ const AudioStudio = {
      * @param {number} options.padding - Padding de seguridad en px (default: 100)
      */
     scrollToNotePosition(timeIndex, options = {}) {
-        const { smooth = true, center = false, padding = 100 } = options;
+        const { smooth = true, center = false, padding = 100, force = false } = options;
 
         const scrollContainer = document.querySelector('.scroll-partitura');
         if (!scrollContainer) return;
 
-        // Respetar scroll manual del usuario
-        if (this.state.touchActive) return;
+        // Respetar scroll manual del usuario (a menos que force=true)
+        if (this.state.touchActive && !force) return;
 
         // Fallback a scroll por compás si no hay posiciones cacheadas
         if (!this.state.notePositionsX || Object.keys(this.state.notePositionsX).length === 0) {
@@ -1140,10 +1140,12 @@ const AudioStudio = {
         this.renderPartiture();
 
         // AUTO-SCROLL V2: Centrar la nota del error en pantalla
+        // force: true para ignorar touchActive (el usuario acaba de tocar la lista de errores)
         this.scrollToNotePosition(this.state.cursorIndex, {
             smooth: true,
             center: true,
-            padding: 150
+            padding: 150,
+            force: true
         });
 
         // Calcular posición para tooltip dinámico
