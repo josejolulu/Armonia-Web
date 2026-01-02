@@ -71,7 +71,13 @@ const AudioStudio = {
      * @returns {void}
      */
     setAppMode(mode) {
+        console.log(`[setAppMode] Cambiando a: ${mode}`);
+
         this.state.appMode = mode;
+
+        // TAREA 3: Usar dataset para que CSS maneje visibilidad
+        document.body.dataset.mode = mode;
+
         document.body.classList.remove('mode-write', 'mode-review');
         document.body.classList.add('mode-' + mode);
 
@@ -105,8 +111,11 @@ const AudioStudio = {
                 sidebar.classList.add('manually-collapsed');
             }
 
-            this.renderPartiture();
+            // Forzar repaint usando requestAnimationFrame
+            requestAnimationFrame(() => this.renderPartiture());
         }
+
+        console.log(`[setAppMode] Completado: ${mode}, body.dataset.mode=${document.body.dataset.mode}`);
     },
 
     // ===== TONALIDAD =====
@@ -233,6 +242,11 @@ const AudioStudio = {
     handleKeyboard(e) {
         if (e.target.tagName === 'INPUT') return;
 
+        // AUDIO CONTEXT: Inicializar Tone.js en primera interacción
+        if (typeof Tone !== 'undefined' && Tone.context.state === 'suspended') {
+            Tone.start().then(() => console.log('[AUDIO] Tone.js context started'));
+        }
+
         // Undo/Redo
         if (e.ctrlKey || e.metaKey) {
             if (e.key === 'z') {
@@ -262,12 +276,40 @@ const AudioStudio = {
         if (e.key === 'ArrowLeft') this.moveCursor(-1);
         if (e.key === 'ArrowRight') this.moveCursor(1);
         if (e.key === 'Backspace' || e.key === 'Delete') this.addNote(null);
-        if (e.key === 'Enter') this.analyzePartiture();
-        // Escape: cambiar a modo Escribir (siempre)
+
+        // ENTER: Cambiar a modo Review y analizar
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (document.activeElement) document.activeElement.blur();
+
+            requestAnimationFrame(() => {
+                this.setAppMode('review');
+            });
+        }
+
+        // ESCAPE: Cambiar a modo Write
         if (e.key === 'Escape') {
             e.preventDefault();
             e.stopPropagation();
-            this.setAppMode('write');
+            if (document.activeElement) document.activeElement.blur();
+
+            requestAnimationFrame(() => {
+                this.setAppMode('write');
+            });
+        }
+
+        // ESPACIO: Toggle playback
+        if (e.code === 'Space') {
+            e.preventDefault();
+            e.stopPropagation();
+            this.togglePlayback();
+        }
+
+        // P: Pause
+        if (e.code === 'KeyP' && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            this.pauseScore();
         }
     },
 
@@ -330,6 +372,26 @@ const AudioStudio = {
     addNote(note) {
         AppState.updateNote(this.state.cursorIndex, this.state.vozActiva, note);
         // La actualización del historial y localStorage la maneja AppState
+
+        // TAREA 2 (Bug #6): Reset de alteración después de añadir nota
+        // Resetear a natural por defecto para la siguiente nota
+        if (note !== null) {
+            try {
+                this.state.modoAlteracion = 'n';  // Reset to natural
+
+                // Deseleccionar visualmente los botones de alteración
+                const btnSos = document.getElementById('btn-alt-sostenido');
+                const btnBem = document.getElementById('btn-alt-bemol');
+                const btnNat = document.getElementById('btn-alt-natural');
+
+                if (btnSos) btnSos.classList.remove('active');
+                if (btnBem) btnBem.classList.remove('active');
+                if (btnNat) btnNat.classList.add('active');
+            } catch (e) {
+                console.warn('Error resetting alteración:', e);
+                // Continuar sin romper la ejecución
+            }
+        }
 
         const autoFlow = document.getElementById('chk-autoflow').checked;
         if (autoFlow && note !== null) {
@@ -795,10 +857,27 @@ const AudioStudio = {
             // Almacenar notas del bajo para obtener posiciones X después del render
             const notasBajoConIndice = [];
 
+            // TAREA 1 (Bug #6): Helpers para tracking de alteraciones
+            const getAccidentalFromNote = (noteStr) => {
+                if (!noteStr) return null;
+                if (noteStr.includes('#')) return '#';
+                if (noteStr.includes('b')) return 'b';
+                if (noteStr.includes('n')) return 'n';
+                return null;  // Natural sin marca explícita
+            };
+
+            const getNoteBaseName = (noteStr) => {
+                if (!noteStr) return '';
+                return noteStr[0].toUpperCase();  // 'C', 'D', 'E', etc
+            };
+
             for (let c = 0; c < this.config.NUM_COMPASES; c++) {
                 const inicio = c * this.config.TIEMPOS;
                 const fin = inicio + this.config.TIEMPOS;
                 const slice = this.state.partitura.slice(inicio, fin);
+
+                // TAREA 1 (Bug #6): Inicializar tracker de alteraciones por compás
+                const measureAccidentals = {};
 
                 const strS = this.generateVoiceString(slice, 'S');
                 const strA = this.generateVoiceString(slice, 'A');
@@ -809,6 +888,60 @@ const AudioStudio = {
                 const na = score.notes(strA, { stem: 'down' });
                 const nt = score.notes(strT, { stem: 'up', clef: 'bass' });
                 const nb = score.notes(strB, { stem: 'down', clef: 'bass' });
+
+                // TAREA 1 (Bug #6): Aplicar becuadros automáticos
+                // CRITICAL FIX: Solo añadir modificador para BECUADROS
+                // VexFlow ya renderiza # y b desde el string "F#4/q", no necesitan addModifier
+                const applyAccidentals = (staveNotes, voiceData, voice) => {
+                    staveNotes.forEach((staveNote, idx) => {
+                        const originalNote = voiceData[idx];
+                        if (!originalNote || originalNote === null) return;
+
+                        const noteBaseName = getNoteBaseName(originalNote);
+                        const currentAccidental = getAccidentalFromNote(originalNote);
+                        const previousAccidental = measureAccidentals[noteBaseName];
+
+                        // Decidir si mostrar BECUADRO (solo becuadros, no # ni b)
+                        let shouldShowNatural = false;
+
+                        if (currentAccidental === null || currentAccidental === 'n') {
+                            // Nota es natural
+                            if (previousAccidental && (previousAccidental === '#' || previousAccidental === 'b')) {
+                                // Había alteración previa, mostrar becuadro
+                                shouldShowNatural = true;
+                            }
+                            measureAccidentals[noteBaseName] = null;  // Actualizar tracker
+                        } else {
+                            // Nota tiene alteración (# o b)
+                            // VexFlow ya la renderiza desde el string, solo actualizar tracker
+                            measureAccidentals[noteBaseName] = currentAccidental;
+                        }
+
+                        // Aplicar SOLO becuadro si es necesario
+                        // NO añadir modificador para # o b (ya están en el string)
+                        if (shouldShowNatural && staveNote.keys && staveNote.keys.length > 0) {
+                            try {
+                                const VF = VexFlow;
+                                staveNote.addModifier(new VF.Accidental('n'), 0);
+                            } catch (e) {
+                                console.warn(`Error añadiendo becuadro a ${voice}:`, e);
+                            }
+                        }
+                    });
+                };
+
+                // Aplicar a cada voz
+                const voicesData = {
+                    'S': slice.map(t => t.S),
+                    'A': slice.map(t => t.A),
+                    'T': slice.map(t => t.T),
+                    'B': slice.map(t => t.B)
+                };
+
+                applyAccidentals(ns, voicesData.S, 'S');
+                applyAccidentals(na, voicesData.A, 'A');
+                applyAccidentals(nt, voicesData.T, 'T');
+                applyAccidentals(nb, voicesData.B, 'B');
 
                 // Guardar referencia a notas del bajo con su índice de tiempo
                 nb.forEach((nota, idx) => {
@@ -854,6 +987,9 @@ const AudioStudio = {
 
             // FASE 2.1: Renderizar grados con posiciones X reales de VexFlow
             this.renderGrados(notasBajoConIndice);
+
+            // AUTO-FOCUS: Reclamar foco para que teclado funcione desde el inicio
+            document.body.focus();
 
         } catch (e) {
             console.error('Error renderizando:', e);
@@ -955,23 +1091,11 @@ window.AudioStudio = AudioStudio;
 window.addEventListener('DOMContentLoaded', () => {
     AudioStudio.init();
 
-    // ATAJOS DE TECLADO (Fase 2.3)
-    document.addEventListener('keydown', (e) => {
-        // Ignorar si el foco está en un input
-        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    // AUTO-FOCUS: Reclamar foco global para que el teclado funcione desde el inicio
+    document.body.tabIndex = -1;  // Permitir que body reciba foco
+    document.body.focus();
 
-        // Barra Espaciadora: Play/Stop
-        if (e.code === 'Space') {
-            e.preventDefault();
-            AudioStudio.togglePlayback();
-        }
-
-        // Tecla P: Pause
-        if (e.code === 'KeyP') {
-            e.preventDefault();
-            AudioStudio.pauseScore();
-        }
-    });
+    console.log('[INIT] Foco global establecido en body');
 });
 
 // Phase 2: Desktop UX Enhancements - New functions
