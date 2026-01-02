@@ -207,8 +207,8 @@ h1 {
    Crea padding de seguridad cuando se centra en móvil
    ============================================= */
 .vf-stavenote {
-    scroll-margin-inline: 100px;
-    /* Margen horizontal al hacer scrollIntoView */
+    scroll-margin-inline: 120px;
+    /* Margen horizontal al hacer scrollIntoView (NotebookLM V2) */
 }
 
 /* Wrapper para alinear lienzo y grados */
