@@ -1181,27 +1181,33 @@ const AudioStudio = {
                     }, 100);
                 }
 
-                // TOOLTIP: En móvil centrado simple, en desktop posicionado
-                if (isMobile) {
-                    // Móvil: tooltip centrado arriba (funciona de forma fiable)
-                    this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto, 6000);
-                } else {
-                    // Desktop: tooltip posicionado cerca de la nota
+                // TOOLTIP POSICIONADO: Esperar que scroll complete, luego obtener posición X
+                // Secuencia: Scroll → ESPERAR 200ms → getBoundingClientRect → showAtPosition
+                setTimeout(() => {
                     const noteElement = this.getNoteElementByTimeIndex(this.state.cursorIndex);
+
                     if (noteElement) {
+                        // Obtener posición REAL del elemento SVG después del scroll
                         const noteRect = noteElement.getBoundingClientRect();
                         const scrollContainer = document.querySelector('.scroll-partitura');
-                        const containerRect = scrollContainer ? scrollContainer.getBoundingClientRect() : { top: 0 };
+                        const containerRect = scrollContainer ? scrollContainer.getBoundingClientRect() : { top: 0, left: 0 };
+
+                        // Posición X: centro del elemento SVG de la nota
                         const absX = noteRect.left + (noteRect.width / 2);
+                        // Posición Y: arriba del pentagrama
                         const absY = containerRect.top + 50;
+
+                        console.log(`[TOOLTIP] noteRect.left=${noteRect.left}, absX=${absX}, absY=${absY}`);
+
                         this.tooltipManager.showAtPosition(
                             this.state.errorSeleccionado.mensaje_corto,
                             absX, absY, 6000
                         );
                     } else {
+                        // Fallback: tooltip centrado si no encontramos el elemento
                         this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto, 6000);
                     }
-                }
+                }, 200);  // Esperar 200ms para que scroll complete
             });
         });
     },
