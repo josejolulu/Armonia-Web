@@ -1151,25 +1151,38 @@ const AudioStudio = {
         // Detectar si es móvil (ancho < 600px)
         const isMobile = window.innerWidth < 600;
 
-        // AUTO-SCROLL: Esperar a que el render visual se complete
+        // SOLUCIÓN NOTEBOOKLM V2: Doble requestAnimationFrame para asegurar render completo
+        // Además, eliminar temporalmente overflow:hidden de #stage en móvil
         requestAnimationFrame(() => {
-            setTimeout(() => {
-                // Scroll INSTANTÁNEO para que scrollLeft sea correcto al calcular tooltip
+            requestAnimationFrame(() => {
+                // En móvil: eliminar temporalmente overflow:hidden del padre #stage
+                const stage = document.getElementById('stage');
+                let originalOverflow = null;
+
+                if (isMobile && stage) {
+                    originalOverflow = stage.style.overflow;
+                    stage.style.overflow = 'visible';
+                }
+
+                // Scroll con scrollIntoView
                 this.scrollToNotePosition(this.state.cursorIndex, {
-                    smooth: false,  // Instantáneo para timing correcto
+                    smooth: false,
                     center: true,
                     padding: 150,
                     force: true
                 });
 
-                // Mostrar tooltip inmediatamente después del scroll instantáneo
-                // En móvil: tooltip centrado arriba (más visible)
-                // En desktop: tooltip cerca de la nota
+                // Restaurar overflow después del scroll (con pequeño delay)
+                if (isMobile && stage && originalOverflow !== null) {
+                    setTimeout(() => {
+                        stage.style.overflow = originalOverflow || '';
+                    }, 100);
+                }
+
+                // Mostrar tooltip
                 if (isMobile) {
-                    // Móvil: tooltip centrado simple
                     this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto, 6000);
                 } else {
-                    // Desktop: tooltip posicionado cerca del error
                     const noteX = this.state.notePositionsX[this.state.cursorIndex];
                     if (noteX !== undefined) {
                         const scrollContainer = document.querySelector('.scroll-partitura');
@@ -1189,7 +1202,7 @@ const AudioStudio = {
                         this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
                     }
                 }
-            }, 50);
+            });
         });
     },
 
