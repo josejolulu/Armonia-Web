@@ -202,6 +202,15 @@ h1 {
     vertical-align: top;
 }
 
+/* =============================================
+   VEXFLOW NOTES - Scroll margin para scrollIntoView
+   Crea padding de seguridad cuando se centra en móvil
+   ============================================= */
+.vf-stavenote {
+    scroll-margin-inline: 100px;
+    /* Margen horizontal al hacer scrollIntoView */
+}
+
 /* Wrapper para alinear lienzo y grados */
 .partitura-wrapper {
     display: inline-block;

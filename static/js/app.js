@@ -999,9 +999,21 @@ const AudioStudio = {
         // Respetar scroll manual del usuario (a menos que force=true)
         if (this.state.touchActive && !force) return;
 
-        // Fallback a scroll por compás si no hay posiciones cacheadas
+        // MÉTODO NOTEBOOKLM: Usar scrollIntoView en elemento SVG de la nota
+        // Esto funciona en móvil donde scrollTo() falla por overflow:hidden del padre
+        const noteElement = this.getNoteElementByTimeIndex(timeIndex);
+
+        if (noteElement) {
+            noteElement.scrollIntoView({
+                behavior: smooth ? 'smooth' : 'auto',
+                block: 'nearest',      // No cambiar posición vertical
+                inline: center ? 'center' : 'nearest'  // Centrar horizontalmente o solo hacer visible
+            });
+            return;
+        }
+
+        // FALLBACK: Si no encontramos el elemento SVG, usar scroll por posición calculada
         if (!this.state.notePositionsX || Object.keys(this.state.notePositionsX).length === 0) {
-            // Fallback: estimar posición basada en compás
             const measureIndex = Math.floor(timeIndex / 4);
             const measureWidth = 270;
             const firstMeasureWidth = 320;
@@ -1018,10 +1030,8 @@ const AudioStudio = {
             return;
         }
 
-        // Obtener posición X de la nota
         const noteX = this.state.notePositionsX[timeIndex];
         if (noteX === undefined) {
-            // Fallback: usar posición más cercana conocida
             const keys = Object.keys(this.state.notePositionsX).map(Number).sort((a, b) => a - b);
             const closestKey = keys.reduce((prev, curr) =>
                 Math.abs(curr - timeIndex) < Math.abs(prev - timeIndex) ? curr : prev, keys[0]);
@@ -1032,47 +1042,41 @@ const AudioStudio = {
         }
 
         const containerWidth = scrollContainer.clientWidth;
-        const currentScroll = scrollContainer.scrollLeft;
-
-        // Calcular si la nota está visible
-        const noteViewportX = noteX - currentScroll;
-        const isVisible = noteViewportX > padding && noteViewportX < (containerWidth - padding);
-
-        // Si está visible con padding suficiente, no scroll
-        if (isVisible && !center) return;
-
-        let targetScroll;
-
-        if (center) {
-            // Centrar la nota en el tercio central
-            targetScroll = noteX - (containerWidth / 2);
-        } else {
-            // Mantener padding de seguridad a la derecha (para notas nuevas)
-            const rightThreshold = containerWidth * 0.75;  // 25% del margen derecho
-
-            if (noteViewportX > rightThreshold) {
-                // Nota cerca del borde derecho: scroll para dejar padding
-                targetScroll = noteX - (containerWidth - padding);
-            } else if (noteViewportX < padding) {
-                // Nota fuera por la izquierda
-                targetScroll = noteX - padding;
-            } else {
-                return;  // Ya visible con suficiente espacio
-            }
-        }
-
-        // Limitar scroll
-        const maxScroll = scrollContainer.scrollWidth - containerWidth;
-        targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
+        let targetScroll = center ? noteX - (containerWidth / 2) : Math.max(0, noteX - padding);
+        targetScroll = Math.max(0, Math.min(targetScroll, scrollContainer.scrollWidth - containerWidth));
 
         if (smooth) {
-            scrollContainer.scrollTo({
-                left: targetScroll,
-                behavior: 'smooth'
-            });
+            scrollContainer.scrollTo({ left: targetScroll, behavior: 'smooth' });
         } else {
             scrollContainer.scrollLeft = targetScroll;
         }
+    },
+
+    /**
+     * Obtiene el elemento SVG (.vf-stavenote) correspondiente a un timeIndex.
+     * Las notas VexFlow se renderizan en orden: 4 voces por tiempo (S, A, T, B).
+     * 
+     * @param {number} timeIndex - Índice del tiempo (0, 1, 2, ...)
+     * @returns {Element|null} - Elemento SVG de la nota o null
+     */
+    getNoteElementByTimeIndex(timeIndex) {
+        const lienzo = document.getElementById('lienzo-partitura');
+        if (!lienzo) return null;
+
+        const noteGroups = lienzo.querySelectorAll('.vf-stavenote');
+        if (!noteGroups || noteGroups.length === 0) return null;
+
+        // Las notas se ordenan: S1, A1, T1, B1, S2, A2, T2, B2...
+        // Para timeIndex N, el primer elemento de ese tiempo es N * 4
+        const startIdx = timeIndex * 4;
+
+        // Devolver el primer elemento de ese tiempo (cualquier voz sirve para scroll)
+        if (startIdx < noteGroups.length) {
+            return noteGroups[startIdx];
+        }
+
+        // Si no hay suficientes notas, devolver la última disponible
+        return noteGroups.length > 0 ? noteGroups[noteGroups.length - 1] : null;
     },
 
     /**
