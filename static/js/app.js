@@ -59,6 +59,9 @@ const AudioStudio = {
         // Configura cierre de dropdown de tonalidad
         this._setupTonalityDropdownClose();
 
+        // BUG #7: Configurar touch listeners para piano móvil
+        this.setupPianoTouchListeners();
+
         // Analizar inicialmente para mostrar grados si hay notas recuperadas
         setTimeout(() => this.analyzePartiture(true), 500);
 
@@ -356,9 +359,16 @@ const AudioStudio = {
             document.getElementById(`btn-${v}`).classList.toggle('voz-activa', v === voice);
         });
 
+        // Cambiar octava según voz
         const octavaMap = { 'S': 5, 'A': 4, 'T': 3, 'B': 3 };
         this.state.octavaBase = octavaMap[voice];
-        document.getElementById('display-octava').innerText = this.state.octavaBase;
+
+        // BUG #7 FIX: Actualizar AMBOS displays de octava (desktop y móvil)
+        const displayOctava = document.getElementById('display-octava');
+        const mobileOctava = document.getElementById('mobile-octava');
+
+        if (displayOctava) displayOctava.innerText = this.state.octavaBase;
+        if (mobileOctava) mobileOctava.innerText = this.state.octavaBase;
     },
 
     updateUI() {
@@ -419,6 +429,79 @@ const AudioStudio = {
         document.getElementById('display-octava').innerText = this.state.octavaBase;
         const mo = document.getElementById('mobile-octava');
         if (mo) mo.innerText = this.state.octavaBase;
+    },
+
+    // BUG #7: Detector de octava unificado para click y touch
+    detectOctaveFromEvent(event, element) {
+        // Obtener coordenadas independiente de tipo de evento
+        const clientY = event.type && event.type.includes('touch')
+            ? event.touches[0].clientY
+            : event.clientY;
+
+        const rect = element.getBoundingClientRect();
+        const relativeY = clientY - rect.top;
+        const height = rect.height;
+
+        // Dividir en 3 zonas: alta (octava +1), media (0), baja (octava -1)
+        if (relativeY < height * 0.33) {
+            return this.state.octavaBase + 1;  // Zona superior = octava arriba
+        } else if (relativeY > height * 0.67) {
+            return Math.max(1, this.state.octavaBase - 1);  // Zona inferior = octava abajo
+        } else {
+            return this.state.octavaBase;  // Zona media = octava actual
+        }
+    },
+
+    // BUG #7: Setup de listeners touch para piano (móvil)
+    setupPianoTouchListeners() {
+        // Teclas blancas
+        const whiteNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        whiteNotes.forEach(note => {
+            const key = document.getElementById(`key-${note}`);
+            if (key) {
+                key.addEventListener('touchstart', (e) => {
+                    e.preventDefault();  // Prevenir double-tap zoom
+                    const octave = this.detectOctaveFromEvent(e, key);
+                    const savedOctave = this.state.octavaBase;
+                    this.state.octavaBase = octave;
+                    this.playWhiteKey(note);
+                    this.state.octavaBase = savedOctave;  // Restaurar
+                }, { passive: false });
+            }
+        });
+
+        // Do agudo (Do+)
+        const highCKey = document.querySelector('[onclick*="tocarDoAgudo"]');
+        if (highCKey) {
+            highCKey.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                this.playHighC();
+            }, { passive: false });
+        }
+
+        // Teclas negras
+        const blackNotes = [
+            { id: 'key-C#', note: 'C', next: 'D' },
+            { id: 'key-D#', note: 'D', next: 'E' },
+            { id: 'key-F#', note: 'F', next: 'G' },
+            { id: 'key-G#', note: 'G', next: 'A' },
+            { id: 'key-A#', note: 'A', next: 'B' }
+        ];
+        blackNotes.forEach(({ id, note, next }) => {
+            const key = document.getElementById(id);
+            if (key) {
+                key.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const octave = this.detectOctaveFromEvent(e, key);
+                    const savedOctave = this.state.octavaBase;
+                    this.state.octavaBase = octave;
+                    this.playBlackKey(note, next);
+                    this.state.octavaBase = savedOctave;  // Restaurar
+                }, { passive: false });
+            }
+        });
+
+        console.log('[BUG#7] Piano touch listeners configurados');
     },
 
     playWhiteKey(note) {
