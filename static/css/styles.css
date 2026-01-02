@@ -1157,6 +1157,8 @@ body.mode-review #deck {
 
 body.mode-review .scroll-partitura {
     padding-top: 60px;
+    /* Compensar ancho del sidebar de errores (320px) */
+    padding-right: 340px;
 }
 
 /* En modo escritura: panel de entrada más visible */

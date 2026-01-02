@@ -19,6 +19,43 @@ const AudioStudio = {
             this.hide();
             const tooltip = document.getElementById('tooltip-error');
             tooltip.textContent = message;
+            // Reset posición por defecto (centrado arriba)
+            tooltip.style.top = '8px';
+            tooltip.style.left = '50%';
+            tooltip.style.transform = 'translateX(-50%)';
+            tooltip.classList.add('tooltip-visible');
+            this.timerId = setTimeout(() => this.hide(), duration);
+        },
+        /**
+         * Muestra tooltip en posición específica (cerca del error)
+         * @param {string} message - Mensaje a mostrar
+         * @param {number} x - Posición X absoluta
+         * @param {number} y - Posición Y absoluta
+         * @param {number} duration - Duración en ms
+         */
+        showAtPosition(message, x, y, duration = 4000) {
+            this.hide();
+            const tooltip = document.getElementById('tooltip-error');
+            tooltip.textContent = message;
+
+            // Posicionar cerca del error
+            const scrollContainer = document.querySelector('.scroll-partitura');
+            const containerRect = scrollContainer ? scrollContainer.getBoundingClientRect() : { left: 0, top: 0 };
+
+            // Calcular posición relativa al contenedor de scroll
+            let tooltipX = x - containerRect.left + 20; // 20px offset a la derecha
+            let tooltipY = y - containerRect.top - 40; // 40px arriba del error
+
+            // Limitar a los bordes del contenedor
+            const tooltipWidth = 280; // max-width del tooltip
+            const maxX = scrollContainer ? scrollContainer.clientWidth - tooltipWidth - 20 : 400;
+            if (tooltipX > maxX) tooltipX = maxX;
+            if (tooltipX < 10) tooltipX = 10;
+            if (tooltipY < 10) tooltipY = 60; // Si está muy arriba, ponerlo debajo
+
+            tooltip.style.top = `${tooltipY}px`;
+            tooltip.style.left = `${tooltipX}px`;
+            tooltip.style.transform = 'none';
             tooltip.classList.add('tooltip-visible');
             this.timerId = setTimeout(() => this.hide(), duration);
         },
@@ -1103,12 +1140,38 @@ const AudioStudio = {
         this.renderPartiture();
 
         // AUTO-SCROLL V2: Centrar la nota del error en pantalla
-        // Usar center:true para que el tooltip tenga espacio a ambos lados
         this.scrollToNotePosition(this.state.cursorIndex, {
             smooth: true,
             center: true,
-            padding: 150  // Extra padding para tooltips
+            padding: 150
         });
+
+        // Calcular posición para tooltip dinámico
+        const noteX = this.state.notePositionsX[this.state.cursorIndex];
+        if (noteX !== undefined) {
+            // Obtener posición del contenedor scroll para calcular coordenadas absolutas
+            const scrollContainer = document.querySelector('.scroll-partitura');
+            if (scrollContainer) {
+                const containerRect = scrollContainer.getBoundingClientRect();
+                const scrollLeft = scrollContainer.scrollLeft;
+                // Posición X absoluta = posición de nota - scroll + offset del contenedor
+                const absX = noteX - scrollLeft + containerRect.left;
+                // Posición Y = parte superior del pentagrama (aproximado)
+                const absY = containerRect.top + 80;
+
+                this.tooltipManager.showAtPosition(
+                    this.state.errorSeleccionado.mensaje_corto,
+                    absX,
+                    absY,
+                    6000
+                );
+            } else {
+                // Fallback a tooltip centrado
+                this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
+            }
+        } else {
+            this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto);
+        }
 
         document.querySelectorAll('.item-error').forEach((el, i) => {
             el.classList.toggle('seleccionado', i === index);
