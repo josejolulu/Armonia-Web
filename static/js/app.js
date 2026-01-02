@@ -1004,10 +1004,12 @@ const AudioStudio = {
         const noteElement = this.getNoteElementByTimeIndex(timeIndex);
 
         if (noteElement) {
+            // Para escritura (center=false): usar 'nearest' para scroll mínimo
+            // Para errores (center=true): usar 'center' para centrar la nota
             noteElement.scrollIntoView({
                 behavior: smooth ? 'smooth' : 'auto',
                 block: 'nearest',      // No cambiar posición vertical
-                inline: center ? 'center' : 'nearest'  // Centrar horizontalmente o solo hacer visible
+                inline: center ? 'center' : 'nearest'  // 'nearest' = scroll mínimo necesario
             });
             return;
         }
@@ -1179,28 +1181,26 @@ const AudioStudio = {
                     }, 100);
                 }
 
-                // TOOLTIP POSICIONADO: Obtener posición X del elemento SVG de la nota
-                // Funciona igual en móvil y desktop
-                const noteElement = this.getNoteElementByTimeIndex(this.state.cursorIndex);
-
-                if (noteElement) {
-                    // Usar getBoundingClientRect para posición real en pantalla
-                    const noteRect = noteElement.getBoundingClientRect();
-                    const scrollContainer = document.querySelector('.scroll-partitura');
-                    const containerRect = scrollContainer ? scrollContainer.getBoundingClientRect() : { top: 0 };
-
-                    // Posición X: centro del elemento SVG de la nota
-                    const absX = noteRect.left + (noteRect.width / 2);
-                    // Posición Y: arriba del pentagrama (dentro del scroll-container)
-                    const absY = containerRect.top + 50;
-
-                    this.tooltipManager.showAtPosition(
-                        this.state.errorSeleccionado.mensaje_corto,
-                        absX, absY, 6000
-                    );
-                } else {
-                    // Fallback: tooltip centrado si no encontramos el elemento
+                // TOOLTIP: En móvil centrado simple, en desktop posicionado
+                if (isMobile) {
+                    // Móvil: tooltip centrado arriba (funciona de forma fiable)
                     this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto, 6000);
+                } else {
+                    // Desktop: tooltip posicionado cerca de la nota
+                    const noteElement = this.getNoteElementByTimeIndex(this.state.cursorIndex);
+                    if (noteElement) {
+                        const noteRect = noteElement.getBoundingClientRect();
+                        const scrollContainer = document.querySelector('.scroll-partitura');
+                        const containerRect = scrollContainer ? scrollContainer.getBoundingClientRect() : { top: 0 };
+                        const absX = noteRect.left + (noteRect.width / 2);
+                        const absY = containerRect.top + 50;
+                        this.tooltipManager.showAtPosition(
+                            this.state.errorSeleccionado.mensaje_corto,
+                            absX, absY, 6000
+                        );
+                    } else {
+                        this.tooltipManager.show(this.state.errorSeleccionado.mensaje_corto, 6000);
+                    }
                 }
             });
         });
