@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [3.1.0] - 2026-01-03
+
+### 📱 Mobile Experience Fixed
+
+### Fixed
+
+- 🐛 **Mobile Landscape UI**:
+  - Unificación completa de interfaz en modos Escribir/Revisar
+  - Visibilidad de grados funcionales corregida (uso de `zoom` vs `transform`)
+  - Controles de reproducción y navegación alineados en una sola fila compacta
+- 🐛 **Undo/Redo en Móvil**:
+  - Habilitación de botones corregida (llamada faltante a `updateHistoryButtons`)
+  - Restaurada funcionalidad táctil para Deshacer/Rehacer
+
+---
+
 ## [v1.3.0] - 2026-01-01
 
 ### 🐛 Bug Fixes

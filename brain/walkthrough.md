@@ -1,60 +1,39 @@
-# 🎉 Walkthrough - Sistema de Reglas Armónicas Completo
+# Mobile Landscape UI & Mobile Fixes - Walkthrough
 
-> **Fecha**: 30 Diciembre 2025  
-> **Alcance**: Verificación completa del sistema de 12 reglas armónicas implementadas
+## Objetivos Cumplidos
 
----
+1. **Mobile Landscape UI Unificada**:
+   - Pentagrama visible con ambos claves
+   - Grados funcionales visibles
+   - Controles unificados en una sola fila
+2. **Mobile Undo/Redo**:
+   - Botones ahora funcionales en pantallas táctiles
 
-## 🎯 Objetivo Cumplido
+## Solución Técnica
 
-Verificar y documentar todas las reglas armónicas implementadas en el sistema Armonía-Web.
+### 1. Landscape UI: `zoom` vs `transform`
 
----
+La clave fue usar `zoom: 0.85` en lugar de `transform: scale(0.85)`.
 
-## ✅ Resultados
+- `transform`: Escala visualmente pero mantiene el espacio original.
+- `zoom`: Escala el elemento y reduce el espacio que ocupa en el layout.
 
-### 12 Reglas Implementadas y Funcionando
+Esto permitió que los grados funcionales cupieran en la pantalla landscape sin ser empujados fuera del viewport.
 
-**Tier 1 (CRITICAL)**: 7/7 reglas ✅
-**Tier 2 (IMPORTANT)**: 5/8 reglas ✅
-**Total**: 12/15 reglas (80% Tier 1+2)
+### 2. Undo/Redo
 
-### Tests
+Se añadió una llamada explícita a `this.updateHistoryButtons()` en `app.js` después de `addNote()`. Antes, el estado cambiaba pero la UI no se enteraba.
 
-- ✅ 100% tests pasando
-- ✅ ~60+ casos de test
-- ✅ Zero regresiones
+## Archivos Modificados
 
-### Descubrimientos
+- `static/css/styles.css`: CSS para landscape y portrait unificado.
+- `static/js/app.js`: Lógica de botones y detección de orientación.
 
-Durante la verificación se encontraron **3 reglas Tier 2 implementadas** que no estaban documentadas en el roadmap inicial:
+## Limitaciones Conocidas
 
-1. ✅ **VoiceCrossingRule** - Detecta cruzamiento de voces (B-T, T-A, A-S)
-2. ✅ **MaximumDistanceRule** - Detecta distancia excesiva entre voces (> 8ª)
-3. ✅ **VoiceOverlapRule** - Detecta invasión de registros entre acordes
+- **Distancia Grados-Pentagrama**: En landscape, los grados están algo separados del bajo debido al posicionamiento absoluto `top: 290px` heredado y la altura fija del SVG de VexFlow.
+- **Zoom Gigante al Refrescar**: Reportado en iOS Portrait. Investigado pero revertido por riesgo de regresión. Pendiente de futura solución profunda (posiblemente viewport o refactor de VexFlow).
 
----
+## Captura Final
 
-## 📊 Impacto
-
-- **Cobertura pedagógica**: 80% de las reglas fundamentales (Tier 1+2)
-- **Producción**: Sistema estable con 12 reglas activas
-- **Calidad**: Arquitectura robusta con fallbacks y excepciones pedagógicas
-
----
-
-## 📋 Documentación Actualizada
-
-1. ✅ [`reglas_implementadas.md`](file:///Users/joseluissanchez/.gemini/antigravity/brain/53640918-cdb4-4edd-92d0-13c7bf89d17f/reglas_implementadas.md) - Lista completa verificada
-2. ✅ [`implementation_plan.md`](file:///Users/joseluissanchez/Documents/Proyectos/Armonia-Web%20antigravity/brain/implementation_plan.md) - Plan actualizado
-3. ✅ [`task.md`](file:///Users/joseluissanchez/Documents/Proyectos/Armonia-Web%20antigravity/brain/task.md) - Estado actual
-
----
-
-## 🚀 Próximo Paso
-
-Completar las 3 reglas Tier 2 restantes:
-
-- ExcessiveMelodicMotionRule
-- TritonResolutionRule
-- ImproperOmissionRule
+![Landscape con grados visibles](file:///Users/joseluissanchez/.gemini/antigravity/brain/53640918-cdb4-4edd-92d0-13c7bf89d17f/uploaded_image_1767439534127.png)

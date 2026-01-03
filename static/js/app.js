@@ -272,6 +272,19 @@ const AudioStudio = {
     // ===== DETECCIÓN DE ORIENTACIÓN =====
     handleOrientationChange() {
         setTimeout(() => {
+            // Detectar mobile landscape: pantalla táctil + orientación horizontal + altura pequeña
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+            const isSmallHeight = window.innerHeight <= 500;
+            const isMobileLandscape = isTouchDevice && isLandscape && isSmallHeight;
+
+            // Aplicar clase para UI unificada en landscape móvil
+            if (isMobileLandscape) {
+                document.body.classList.add('landscape-mobile');
+            } else {
+                document.body.classList.remove('landscape-mobile');
+            }
+
             this.renderPartiture();
             const sc = document.querySelector('.scroll-partitura');
             if (sc) sc.scrollLeft = 0;
@@ -435,6 +448,9 @@ const AudioStudio = {
     addNote(note) {
         AppState.updateNote(this.state.cursorIndex, this.state.vozActiva, note);
         // La actualización del historial y localStorage la maneja AppState
+
+        // IMPORTANTE: Actualizar estado de botones undo/redo
+        this.updateHistoryButtons();
 
         // TAREA 2 (Bug #6): Reset de alteración después de añadir nota
         // Resetear a natural por defecto para la siguiente nota
@@ -1498,6 +1514,9 @@ window.AudioStudio = AudioStudio;
 // Inicialización cuando el DOM esté listo
 window.addEventListener('DOMContentLoaded', () => {
     AudioStudio.init();
+
+    // Detectar landscape móvil al inicio
+    AudioStudio.handleOrientationChange();
 
     // AUTO-FOCUS: Reclamar foco global para que el teclado funcione desde el inicio
     document.body.tabIndex = -1;  // Permitir que body reciba foco

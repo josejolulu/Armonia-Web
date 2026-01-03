@@ -75,6 +75,9 @@
 
 - ✅ **Resolución indirecta**: Sensible → 5ª (con tónica en voz superior)
 - ✅ **V6 → vi**: Cadencia rota en 1ª inversión (modo mayor)
+- [x] **Bug Mobile Landscape**: UI unificada y grados visibles <!-- id: 4 -->
+- [x] **Bug Undo/Redo Móvil**: Botones inactivos corregidos <!-- id: 5 -->
+- [ ] **Bug Zoom Gigante**: Investigado (revertido por ahora) <!-- id: 6 -->
 
 **Documentación**: Ver [`walkthrough.md`](file:///Users/joseluissanchez/.gemini/antigravity/brain/53640918-cdb4-4edd-92d0-13c7bf89d17f/walkthrough.md)
 
@@ -130,6 +133,68 @@
 ✅ **FASE 3A COMPLETADA** - Todas las reglas implementadas
 
 **Siguiente**: FASE 3B - Deployment experimental en Railway.app
+
+---
+
+## ✅ MIGRACIÓN VEXFLOW 5.0 (COMPLETADA)
+
+**Fecha**: 31 Diciembre 2024  
+**Duración**: 1.5 horas  
+**Estado**: ✅ Desplegado en producción
+
+### Cambios Implementados
+
+**Archivos modificados**:
+
+- ✅ `templates/index.html` - CDN 4.2.2 → 5.0.0
+- ✅ `static/js/app.js` - Namespace `Vex.Flow` → `VexFlow` (2 ocurrencias)
+
+**Breaking changes aplicados**:
+
+- Namespace actualizado
+- CDN actualizado
+- Testing local exitoso
+- Merge a main completado
+
+**Commits**:
+
+- `862dcb7` - Migración VexFlow 5.0
+- `d87c676` - Merge a main
+
+**Tags**:
+
+- `v3.0-stable-pre-vexflow5` - Rollback point
+- `v3.1-vexflow5` - Post-migración
+
+**Documentación**:
+
+- [`vexflow_5_migration_walkthrough.md`](file:///Users/joseluissanchez/.gemini/antigravity/brain/53640918-cdb4-4edd-92d0-13c7bf89d17f/vexflow_5_migration_walkthrough.md) - Proceso completo
+- [`vexflow_5_breaking_changes.md`](file:///Users/joseluissanchez/.gemini/antigravity/brain/53640918-cdb4-4edd-92d0-13c7bf89d17f/vexflow_5_breaking_changes.md) - Cambios críticos
+
+---
+
+## 🐛 BUGS PENDIENTES (Post-Migración)
+
+### Bug #1: 6ª Aumentada Alemana
+
+**Síntoma**: Reporta "Factor omitido (?)"  
+**Tipo**: Falso positivo en `ImproperOmissionRule`  
+**Prioridad**: Media  
+**Estimación**: 2-3 horas
+
+### Bug #2: Falta Becuadros
+
+**Síntoma**: Sistema no permite escribir becuadros  
+**Tipo**: Feature faltante  
+**Prioridad**: Media  
+**Estimación**: 1 hora
+
+### Bug #3: Móvil - Detector 8ª
+
+**Síntoma**: Falta funcionalidad desplazamiento octava en móvil  
+**Tipo**: UX incompleto  
+**Prioridad**: Baja  
+**Estimación**: 1-2 horas
 
 ---
 

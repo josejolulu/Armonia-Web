@@ -2407,128 +2407,439 @@ body.mode-write #deck {
 }
 
 /* =============================================
-   MOBILE LANDSCAPE MODE - Optimización Horizontal
-   Vista "cinematográfica" del pentagrama
+   MOBILE LANDSCAPE MODE - Vista Unificada Final
+   
+   DISEÑO:
+   ┌─────────────────────────────────────────┐
+   │     PENTAGRAMA + GRADOS (máximo)        │  calc(100dvh - 40px)
+   ├─────────────────────────────────────────┤
+   │ < >    ⏮ ▶ ⏸ ⏹ ⏭  Loop               │  40px
+   └─────────────────────────────────────────┘
+   
+   REGLAS:
+   - Modo escribir = Modo revisar (idénticos)
+   - Una sola fila de botones
+   - Grados visibles debajo del pentagrama
    ============================================= */
-@media screen and (max-height: 500px) and (orientation: landscape) {
+@media screen and (pointer: coarse) and (orientation: landscape) and (max-height: 700px) {
 
-    /* Body: Sin padding para maximizar espacio */
-    body {
-        padding: 0;
-        gap: 0;
+    /* ========== BODY ========== */
+    body,
+    body.mode-write,
+    body.mode-review {
+        padding: 0 !important;
+        gap: 0 !important;
+        overflow: hidden !important;
+        height: 100dvh !important;
+        height: 100svh !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
-    /* Header: Minimizado o reducido */
+    /* ========== HEADER: OCULTO ========== */
     header {
-        height: 32px;
-        flex: 0 0 32px;
-        padding: 2px 8px;
-        font-size: 0.8rem;
-        background: rgba(255, 255, 255, 0.95);
+        display: none !important;
     }
 
-    header h1 {
-        font-size: 0.75rem;
-    }
-
-    /* Stage: Maximizado para pentagrama */
+    /* ========== STAGE: MAXIMIZADO ========== */
     #stage {
-        flex: 1 1 auto;
-        min-height: 0;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        max-height: calc(100dvh - 40px) !important;
+        overflow: hidden !important;
     }
 
     .scroll-partitura {
-        padding-top: 5px;
-        padding-bottom: 5px;
-        height: 100%;
+        padding: 0 !important;
+        height: 100% !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
     }
 
-    /* Deck: Compacto, controles mínimos */
-    #deck {
-        flex: 0 0 auto;
-        max-height: 25vh;
-        padding: 4px;
+    /* PARTITURA-WRAPPER: Zoom 85% para caber en landscape */
+    .partitura-wrapper {
+        zoom: 0.85 !important;
+        padding-bottom: 25px !important;
     }
 
-    /* Ocultar lista de errores - solo tooltip visible */
-    #panel-resultados,
-    body.mode-review #panel-resultados {
-        display: none !important;
-    }
-
-    /* Ocultar controles de modo (Escribir/Revisar/Borrar) */
-    .mode-controls {
-        display: none !important;
-    }
-
-    /* Controles de reproducción: Compactos y visibles */
-    .playback-controls {
-        display: flex !important;
-        padding: 4px !important;
-        gap: 8px;
-    }
-
-    .playback-controls button {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
-    }
-
-    /* Toolbar: Reducida */
-    .toolbar-row {
-        height: 36px;
-        padding: 2px 6px;
-    }
-
-    /* Teclado virtual: Oculto en landscape */
-    .keyboard-container,
-    #preview-octave {
-        display: none !important;
-    }
-
-    /* Voces: Compactas */
-    .voice-group {
-        gap: 2px;
-    }
-
-    .btn-voice {
-        width: 28px;
-        height: 28px;
-        font-size: 0.75rem;
-    }
-
-    /* Navegación: Compacta */
-    .btn-nav {
-        width: 28px;
-        height: 28px;
-        font-size: 1rem;
-    }
-
-    /* Grados: Más pequeños */
+    /* GRADOS: Posición corregida para landscape */
     .grados-container {
-        font-size: 0.7rem;
+        display: flex !important;
+        position: absolute !important;
+        top: auto !important;
+        bottom: 0 !important;
+        font-size: 0.55rem !important;
+        padding: 0 !important;
+        height: 18px !important;
     }
 
-    /* Tooltip: Asegurar visibilidad */
+    /* ========== DECK: BARRA COMPACTA 40px ========== */
+    #deck,
+    body.mode-write #deck,
+    body.mode-review #deck {
+        flex: 0 0 40px !important;
+        height: 40px !important;
+        max-height: 40px !important;
+        min-height: 40px !important;
+        padding: 2px 12px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 16px !important;
+        background: #fafafa !important;
+        border-top: 1px solid #ddd !important;
+        overflow: hidden !important;
+    }
+
+    /* ========== OCULTAR: Elementos no necesarios ========== */
+    .piano-row,
+    .piano-container,
+    .piano-wrapper,
+    #mobile-input-grid,
+    .mobile-input-grid,
+    #panel-resultados,
+    .mode-controls,
+    .mode-controls-mobile,
+    .voices-group,
+    .voice-group,
+    .side-controls,
+    .ctrl-capsule,
+    #preview-octave,
+    .error-sidebar,
+    .bpm-control,
+    .speed-control {
+        display: none !important;
+    }
+
+    /* ========== TOOLBAR-ROW: TRANSPARENT (display:contents) ========== */
+    .toolbar-row,
+    body.mode-write .toolbar-row,
+    body.mode-review .toolbar-row {
+        display: contents !important;
+    }
+
+    /* ========== NAV-GROUP: Flechas < > (ancho fijo) ========== */
+    .nav-group,
+    body.mode-write .nav-group,
+    body.mode-review .nav-group {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 4px !important;
+        align-items: center !important;
+        flex: 0 0 auto !important;
+        width: auto !important;
+        max-width: 80px !important;
+        overflow: hidden !important;
+    }
+
+    /* INDICADOR POSICIÓN: OCULTO (causa expansión) */
+    #indicador-posicion,
+    .nav-group #indicador-posicion,
+    body.mode-write #indicador-posicion,
+    body.mode-review #indicador-posicion {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        visibility: hidden !important;
+    }
+
+    /* Botones navegación < > */
+    .nav-group .btn-nav {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        font-size: 0.9rem !important;
+        background: white !important;
+        border: 1px solid #ccc !important;
+        border-radius: 6px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ========== PLAYBACK: VISIBLE EN AMBOS MODOS ========== */
+    #bottom-playback,
+    body.mode-write #bottom-playback,
+    body.mode-review #bottom-playback {
+        display: flex !important;
+        flex-direction: row !important;
+        padding: 0 !important;
+        gap: 6px !important;
+        justify-content: center !important;
+        align-items: center !important;
+        background: transparent !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Botones principales ▶ ⏸ ⏹ */
+    #bottom-playback .btn-nav {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        font-size: 0.9rem !important;
+        border-radius: 50% !important;
+        background: white !important;
+        border: 1px solid #ccc !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ⏮ ⏭ VISIBLES */
+    #bottom-playback .btn-nav-small,
+    .btn-nav-small.desktop-only,
+    body.mode-write .btn-nav-small,
+    body.mode-review .btn-nav-small {
+        display: flex !important;
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        font-size: 0.8rem !important;
+        border-radius: 50% !important;
+        background: white !important;
+        border: 1px solid #ccc !important;
+        justify-content: center !important;
+        align-items: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* LOOP VISIBLE */
+    #btn-loop,
+    #btn-loop.desktop-only,
+    .btn-feature.desktop-only {
+        display: flex !important;
+        padding: 3px 6px !important;
+        font-size: 0.65rem !important;
+        background: white !important;
+        border: 1px solid #ccc !important;
+        border-radius: 4px !important;
+        gap: 2px !important;
+        align-items: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    #btn-loop .feature-icon {
+        font-size: 0.7rem !important;
+    }
+
+    #btn-loop .feature-text {
+        font-size: 0.6rem !important;
+    }
+
+    /* ========== TOOLTIP ========== */
     #tooltip-error {
-        max-width: 200px;
-        font-size: 0.75rem;
-        padding: 4px 8px;
+        max-width: 150px !important;
+        font-size: 0.6rem !important;
+        padding: 2px 4px !important;
+        top: 5px !important;
     }
+}
 
-    /* Error sidebar: Oculto en landscape */
-    .error-sidebar {
-        display: none !important;
-    }
+/* =============================================
+   MOBILE LANDSCAPE - CLASE JAVASCRIPT
+   Prioridad MÁXIMA: anula todo lo anterior
+   Clase aplicada por handleOrientationChange()
+   ============================================= */
+body.landscape-mobile,
+body.landscape-mobile.mode-write,
+body.landscape-mobile.mode-review {
+    padding: 0 !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+    height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
 
-    /* BPM: Compacto */
-    .bpm-control {
-        display: none !important;
-    }
+body.landscape-mobile header {
+    display: none !important;
+}
 
-    /* Modal: Adapt to landscape */
-    .modal-content {
-        max-height: 90vh;
-        overflow-y: auto;
-    }
+/* STAGE: Pentagrama + grados (posición relativa para grados absolutos) */
+body.landscape-mobile #stage {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: calc(100dvh - 36px) !important;
+    overflow: hidden !important;
+    position: relative !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.landscape-mobile .scroll-partitura {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+/* partitura-wrapper: Zoom para caber en landscape */
+body.landscape-mobile .partitura-wrapper {
+    position: relative !important;
+    display: inline-block !important;
+    min-width: 100% !important;
+    padding-bottom: 20px !important;
+    zoom: 0.85 !important;
+    /* zoom SÍ reduce espacio ocupado */
+}
+
+/* GRADOS: Posición absoluta, anulando top:290px del CSS base */
+body.landscape-mobile .grados-container {
+    display: flex !important;
+    position: absolute !important;
+    top: auto !important;
+    /* ← ANULA top: 290px del CSS base */
+    bottom: 0 !important;
+    /* Ancla al fondo del partitura-wrapper */
+    left: 0 !important;
+    right: 0 !important;
+    height: 18px !important;
+    font-size: 0.55rem !important;
+    padding: 0 !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    z-index: 10 !important;
+}
+
+/* DECK: Sin borde, pegado al stage */
+body.landscape-mobile #deck,
+body.landscape-mobile.mode-write #deck,
+body.landscape-mobile.mode-review #deck {
+    flex: 0 0 36px !important;
+    height: 36px !important;
+    max-height: 36px !important;
+    min-height: 36px !important;
+    padding: 0 8px !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 12px !important;
+    background: #f8f8f8 !important;
+    border-top: none !important;
+    overflow: hidden !important;
+}
+
+/* OCULTAR: Todo lo innecesario */
+body.landscape-mobile .piano-row,
+body.landscape-mobile .piano-container,
+body.landscape-mobile #mobile-input-grid,
+body.landscape-mobile #panel-resultados,
+body.landscape-mobile .mode-controls,
+body.landscape-mobile .mode-controls-mobile,
+body.landscape-mobile .voices-group,
+body.landscape-mobile .side-controls,
+body.landscape-mobile .ctrl-capsule,
+body.landscape-mobile #preview-octave,
+body.landscape-mobile .error-sidebar,
+body.landscape-mobile .bpm-control,
+body.landscape-mobile .speed-control {
+    display: none !important;
+}
+
+/* TOOLBAR-ROW: display:contents */
+body.landscape-mobile .toolbar-row,
+body.landscape-mobile.mode-write .toolbar-row,
+body.landscape-mobile.mode-review .toolbar-row {
+    display: contents !important;
+}
+
+/* NAV-GROUP: Solo las flechas */
+body.landscape-mobile .nav-group,
+body.landscape-mobile.mode-write .nav-group,
+body.landscape-mobile.mode-review .nav-group {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 2px !important;
+    align-items: center !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    max-width: 70px !important;
+    overflow: hidden !important;
+}
+
+/* INDICADOR: OCULTO COMPLETAMENTE */
+body.landscape-mobile #indicador-posicion,
+body.landscape-mobile.mode-write #indicador-posicion,
+body.landscape-mobile.mode-review #indicador-posicion {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    left: -9999px !important;
+}
+
+/* Botones navegación < > */
+body.landscape-mobile .nav-group .btn-nav {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    font-size: 0.8rem !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    flex-shrink: 0 !important;
+}
+
+/* PLAYBACK: SIEMPRE visible */
+body.landscape-mobile #bottom-playback,
+body.landscape-mobile.mode-write #bottom-playback,
+body.landscape-mobile.mode-review #bottom-playback {
+    display: flex !important;
+    flex-direction: row !important;
+    padding: 0 !important;
+    gap: 4px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    background: transparent !important;
+    flex: 0 0 auto !important;
+}
+
+/* Botones ▶ ⏸ ⏹ */
+body.landscape-mobile #bottom-playback .btn-nav {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    font-size: 0.8rem !important;
+    border-radius: 50% !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+}
+
+/* ⏮ ⏭ VISIBLES */
+body.landscape-mobile #bottom-playback .btn-nav-small,
+body.landscape-mobile .btn-nav-small.desktop-only {
+    display: flex !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    font-size: 0.7rem !important;
+    border-radius: 50% !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* LOOP VISIBLE */
+body.landscape-mobile #btn-loop,
+body.landscape-mobile #btn-loop.desktop-only {
+    display: flex !important;
+    padding: 2px 5px !important;
+    font-size: 0.55rem !important;
+    background: white !important;
+    border: 1px solid #ccc !important;
+    border-radius: 3px !important;
+    gap: 1px !important;
+    align-items: center !important;
+}
+
+body.landscape-mobile #btn-loop .feature-icon {
+    font-size: 0.6rem !important;
+}
+
+body.landscape-mobile #btn-loop .feature-text {
+    font-size: 0.5rem !important;
 }
